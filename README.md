@@ -6,5 +6,7 @@ Drag and drop this project folder into the WireMock Cloud import dialog.
 Tested against python v 3.11.5
 
 To Do:
-* Add logic to convert Dev/Test functions/helpers to WireMock equivalents
-* Test against more VSI examples, including REST services
+* Test against more VSI examples
+* Add logic to detect REST vs XML
+* Add logic to switch between XPATH and JSONPATH WMC handlebar helpers
+* Add logic to apply proper response header based on REST vs XML

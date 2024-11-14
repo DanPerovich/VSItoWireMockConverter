@@ -24,7 +24,6 @@ def convertHelpers(inputText, caller):
     workingText = re.sub(pattern, replacement, workingText)
     
     ###Replace XPath helpers
-    #workingText = re.sub(r"\{\{=.*?\}\}", "NOT YET CODED HELPER CONVERSION", workingText)
     # Regular expression to capture the relevant part between "{{=request_" and ";/*"
     pattern = r"\{\{=request_(.*?);/\*.*?\*/\}\}"
 
@@ -63,7 +62,7 @@ def extract_request_response_with_namespace(sp_element):
     for p in sp_element.findall(".//rq/bd", ns):
         request_data = p.text
 
-        ## TODO: search for Dev/Test specific items and convert them to WireMock format
+        # Search for Dev/Test specific items and convert them to WireMock format
         request_data = convertHelpers(request_data, 'req')
 
     # Search for the response body inside <rs>/<rp>/<bd>
@@ -71,7 +70,7 @@ def extract_request_response_with_namespace(sp_element):
     if bd_element is not None:
         response_data = bd_element.text
 
-        ## TODO: search for Dev/Test specific helpers and convert them to WireMock handlebar format
+        # Search for Dev/Test specific helpers and convert them to WireMock handlebar format
         response_data = convertHelpers(response_data, 'rsp')
 
     # Create a WireMock mapping if both request and response are found
