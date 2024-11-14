@@ -2,6 +2,37 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import sys
+import re
+
+# Replacement function to convert each match to the required XPath format
+def replace_with_xpath(match):
+    # Replace underscores with slashes and add "/text()" at the end
+    xpath_value = match.group(1).replace('_', '/')
+    return f"{{{{xPath request.body '//{xpath_value}/text()'}}}}"
+
+# Function to convert Dev/Test CA LISA helpers to WMC helpers
+def convertHelpers(inputText, caller):
+    outputText = None
+    workingText = inputText
+
+    ###Replace doDateDeltaFromCurrent
+    # Pattern to match the specific format
+    pattern = r"\{\{=doDateDeltaFromCurrent\(&quot;(.*?)&quot;,&quot;([-+]?\d+)D&quot;\);.*?\}\}"
+    # Replacement format string
+    replacement = r"{{now offset='\2 days' format='\1'}}"
+    # Replace all matches in the input string
+    workingText = re.sub(pattern, replacement, workingText)
+    
+    ###Replace XPath helpers
+    #workingText = re.sub(r"\{\{=.*?\}\}", "NOT YET CODED HELPER CONVERSION", workingText)
+    # Regular expression to capture the relevant part between "{{=request_" and ";/*"
+    pattern = r"\{\{=request_(.*?);/\*.*?\*/\}\}"
+
+    # Substitute matches in the text using the pattern and replacement function
+    workingText = re.sub(pattern, replace_with_xpath, workingText)
+
+    outputText = workingText
+    return outputText
 
 # Function to create WireMock mapping files without the "id" field
 def create_wiremock_mapping_without_id(request_data, response_data):
@@ -14,8 +45,9 @@ def create_wiremock_mapping_without_id(request_data, response_data):
         "response": {
             "status": 200,
             "body": response_data,
-            "headers": {"Content-Type": "application/xml"}
-        }
+            "headers": {"Content-Type": "application/xml"},
+            "transformers": ["response-template"]
+        },
     }
     return mapping
 
@@ -32,6 +64,7 @@ def extract_request_response_with_namespace(sp_element):
         request_data = p.text
 
         ## TODO: search for Dev/Test specific items and convert them to WireMock format
+        request_data = convertHelpers(request_data, 'req')
 
     # Search for the response body inside <rs>/<rp>/<bd>
     bd_element = sp_element.find('.//rs/rp/bd', ns)
@@ -39,6 +72,7 @@ def extract_request_response_with_namespace(sp_element):
         response_data = bd_element.text
 
         ## TODO: search for Dev/Test specific helpers and convert them to WireMock handlebar format
+        response_data = convertHelpers(response_data, 'rsp')
 
     # Create a WireMock mapping if both request and response are found
     if request_data and response_data:
