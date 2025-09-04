@@ -9,6 +9,8 @@ packages = [{include = "vsi2wm"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 lxml = "^4.9.0"
+pyyaml = "^6.0"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

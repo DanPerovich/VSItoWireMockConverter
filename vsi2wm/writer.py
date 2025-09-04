@@ -17,6 +17,8 @@ class WireMockWriter:
         self.mappings_dir = output_dir / "mappings"
         self.files_dir = output_dir / "__files"
         self.max_file_size = max_file_size
+        self.large_files_count = 0
+        self.total_large_file_size = 0
         
         # Create directories
         self.mappings_dir.mkdir(parents=True, exist_ok=True)
@@ -81,23 +83,76 @@ class WireMockWriter:
         return None
 
     def _write_large_body(self, body_content: str, transaction_id: str, index: int) -> str:
-        """Write large body content to __files directory."""
-        # Determine file extension based on content
-        if body_content.strip().startswith("{"):
-            extension = "json"
-        elif body_content.strip().startswith("<"):
-            extension = "xml"
-        else:
-            extension = "txt"
+        """Write large body content to __files directory with enhanced features."""
+        # Determine file extension and content type based on content
+        content_type, extension = self._detect_content_type(body_content)
         
-        filename = f"{transaction_id}_{index}_body.{extension}"
+        # Create sanitized filename
+        sanitized_id = self._sanitize_filename(transaction_id)
+        filename = f"{sanitized_id}_{index}_body.{extension}"
         file_path = self.files_dir / filename
         
+        # Write content with proper encoding
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(body_content)
         
-        logger.debug(f"Written large body to {file_path}")
+        # Log file size for monitoring and track statistics
+        file_size = file_path.stat().st_size
+        self.large_files_count += 1
+        self.total_large_file_size += file_size
+        logger.debug(f"Written large body to {file_path} ({file_size} bytes)")
+        
         return f"__files/{filename}"
+    
+    def _detect_content_type(self, content: str) -> tuple[str, str]:
+        """Detect content type and appropriate file extension."""
+        content = content.strip()
+        
+        # JSON detection
+        if content.startswith("{") or content.startswith("["):
+            return "application/json", "json"
+        
+        # XML detection
+        if content.startswith("<"):
+            return "application/xml", "xml"
+        
+        # HTML detection
+        if content.startswith("<!DOCTYPE") or content.startswith("<html"):
+            return "text/html", "html"
+        
+        # Plain text detection
+        if content.startswith("text/") or "Content-Type: text/" in content:
+            return "text/plain", "txt"
+        
+        # Binary content detection (base64)
+        if self._is_base64_content(content):
+            return "application/octet-stream", "bin"
+        
+        # Default to text
+        return "text/plain", "txt"
+    
+    def _is_base64_content(self, content: str) -> bool:
+        """Check if content appears to be base64 encoded."""
+        import base64
+        import re
+        
+        # Remove whitespace and check if it looks like base64
+        clean_content = re.sub(r'\s+', '', content)
+        
+        # Base64 should only contain A-Z, a-z, 0-9, +, /, and = for padding
+        if not re.match(r'^[A-Za-z0-9+/]*={0,2}$', clean_content):
+            return False
+        
+        # Check if length is reasonable for base64
+        if len(clean_content) % 4 != 0:
+            return False
+        
+        try:
+            # Try to decode a small portion
+            base64.b64decode(clean_content[:100])
+            return True
+        except Exception:
+            return False
 
     def _update_stub_with_file_reference(self, stub: Dict[str, Any], file_path: str) -> Dict[str, Any]:
         """Update stub to reference external file instead of inline body."""
@@ -137,7 +192,10 @@ class WireMockWriter:
             "writer_info": {
                 "max_file_size": self.max_file_size,
                 "output_format": "wiremock",
-                "version": "1.0"
+                "version": "1.0",
+                "files_written": len(list(self.files_dir.glob("*"))) if self.files_dir.exists() else 0,
+                "large_files_split": self.large_files_count if hasattr(self, 'large_files_count') else 0,
+                "total_large_file_size": self.total_large_file_size if hasattr(self, 'total_large_file_size') else 0,
             }
         }
         

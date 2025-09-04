@@ -1,0 +1,39 @@
+{
+  "priority": 0,
+  "request": {
+    "method": "POST",
+    "urlPath": "/users",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"name\": \"Charlie\", \"email\": \"charlie@example.com\"}",
+        "ignoreArrayOrder": true,
+        "ignoreExtraElements": true
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "jsonBody": {
+      "id": 3,
+      "name": "Charlie",
+      "email": "charlie@example.com"
+    },
+    "delayDistribution": {
+      "type": "uniform",
+      "lower": 150,
+      "upper": 300
+    },
+    "transformers": [
+      "response-template"
+    ]
+  },
+  "metadata": {
+    "devtest_transaction_id": "POST#/users",
+    "devtest_variant_weight": 0.9
+  }
+}

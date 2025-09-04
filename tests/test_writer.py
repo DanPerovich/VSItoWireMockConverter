@@ -111,10 +111,10 @@ class TestWireMockWriter:
                 content = json.load(f)
                 assert "body" not in content["response"]
                 assert "bodyFileName" in content["response"]
-                assert content["response"]["bodyFileName"] == "__files/POST__large_0_body.txt"
+                assert content["response"]["bodyFileName"] == "__files/POST__large_0_body.bin"
             
             # Check body file
-            body_file = writer.files_dir / "POST__large_0_body.txt"
+            body_file = writer.files_dir / "POST__large_0_body.bin"
             assert body_file.exists()
             
             with open(body_file, "r") as f:
@@ -363,4 +363,4 @@ class TestWriteWireMockOutput:
             stats = write_wiremock_output(stubs, report_data, Path(temp_dir), max_file_size=100)
             
             assert stats["large_files_split"] == 1
-            assert (Path(temp_dir) / "__files" / "POST__large_0_body.txt").exists()
+            assert (Path(temp_dir) / "__files" / "POST__large_0_body.bin").exists()

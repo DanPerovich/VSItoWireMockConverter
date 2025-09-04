@@ -1,0 +1,44 @@
+# VSI to WireMock Converter Configuration
+# This file contains configuration options for the VSI to WireMock converter
+
+# Latency strategy: uniform (default) or fixed:<ms>
+latency_strategy: uniform
+
+# SOAP match strategy: soapAction, xpath, both (default: both)
+soap_match_strategy: both
+
+# Maximum file size in bytes before splitting to __files/ (default: 1048576 = 1MB)
+max_file_size: 1048576
+
+# Log level: debug, info, warn, error (default: info)
+log_level: info
+
+# WireMock Cloud settings (optional)
+# wiremock_cloud:
+#   api_key: your_api_key_here
+#   project_id: your_project_id_here
+#   environment: your_environment_here
+
+# JSON matching options
+json_matching:
+  ignore_array_order: true
+  ignore_extra_elements: true
+
+# XML matching options
+xml_matching:
+  normalize_whitespace: true
+
+# Priority strategy: weight_descending (default), weight_ascending, order
+priority_strategy: weight_descending
+
+# Enable response templates (default: true)
+enable_response_templates: true
+
+# Preserve DevTest metadata (default: true)
+preserve_devtest_metadata: true
+
+# Create index files (default: true)
+create_index_files: true
+
+# Create summary files (default: true)
+create_summary_files: true

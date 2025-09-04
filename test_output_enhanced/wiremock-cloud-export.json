@@ -1,0 +1,206 @@
+{
+  "version": "1.0",
+  "format": "wiremock-cloud",
+  "stubs": [
+    {
+      "request": {
+        "method": "POST",
+        "urlPath": "/users",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        },
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"name\": \"Charlie\", \"email\": \"charlie@example.com\"}",
+            "ignoreArrayOrder": true,
+            "ignoreExtraElements": true
+          }
+        ]
+      },
+      "response": {
+        "status": 201,
+        "jsonBody": {
+          "id": 3,
+          "name": "Charlie",
+          "email": "charlie@example.com"
+        },
+        "delayDistribution": {
+          "type": "uniform",
+          "lower": 150,
+          "upper": 300
+        },
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 0,
+      "metadata": {
+        "devtest_transaction_id": "POST#/users",
+        "devtest_variant_weight": 0.9
+      },
+      "name": "POST#/users"
+    },
+    {
+      "request": {
+        "method": "POST",
+        "urlPath": "/users",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        },
+        "bodyPatterns": [
+          {
+            "equalToJson": "{\"name\": \"Charlie\", \"email\": \"charlie@example.com\"}",
+            "ignoreArrayOrder": true,
+            "ignoreExtraElements": true
+          }
+        ]
+      },
+      "response": {
+        "status": 400,
+        "jsonBody": {
+          "error": "Invalid email format"
+        },
+        "fixedDelayMilliseconds": 100,
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 1,
+      "metadata": {
+        "devtest_transaction_id": "POST#/users",
+        "devtest_variant_weight": 0.1
+      },
+      "name": "POST#/users"
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "urlPath": "/users/1",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        }
+      },
+      "response": {
+        "status": 404,
+        "jsonBody": {
+          "error": "User not found"
+        },
+        "fixedDelayMilliseconds": 50,
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 1,
+      "metadata": {
+        "devtest_transaction_id": "DELETE#/users/{id}",
+        "devtest_variant_weight": 0.3
+      },
+      "name": "DELETE#/users/{id}"
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "urlPath": "/users/1",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        }
+      },
+      "response": {
+        "status": 204,
+        "delayDistribution": {
+          "type": "uniform",
+          "lower": 80,
+          "upper": 120
+        },
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 0,
+      "metadata": {
+        "devtest_transaction_id": "DELETE#/users/{id}",
+        "devtest_variant_weight": 0.7
+      },
+      "name": "DELETE#/users/{id}"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/users",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        }
+      },
+      "response": {
+        "status": 404,
+        "jsonBody": {
+          "error": "No users found"
+        },
+        "fixedDelayMilliseconds": 50,
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 1,
+      "metadata": {
+        "devtest_transaction_id": "GET#/users",
+        "devtest_variant_weight": 0.2
+      },
+      "name": "GET#/users"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPath": "/users",
+        "headers": {
+          "Content-Type": {
+            "equalTo": "application/json"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "users": [
+            {
+              "id": 1,
+              "name": "Alice"
+            },
+            {
+              "id": 2,
+              "name": "Bob"
+            }
+          ]
+        },
+        "delayDistribution": {
+          "type": "uniform",
+          "lower": 100,
+          "upper": 200
+        },
+        "transformers": [
+          "response-template"
+        ]
+      },
+      "priority": 0,
+      "metadata": {
+        "devtest_transaction_id": "GET#/users",
+        "devtest_variant_weight": 0.8
+      },
+      "name": "GET#/users"
+    }
+  ],
+  "metadata": {
+    "generated_by": "vsi2wm",
+    "total_stubs": 6
+  }
+}

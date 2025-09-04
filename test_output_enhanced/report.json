@@ -1,0 +1,27 @@
+{
+  "source_file": "tests/data/multiple_transactions.vsi",
+  "source_version": "2.0",
+  "build_number": "2.0.0",
+  "counts": {
+    "transactions": 3,
+    "variants": 6,
+    "stubs_generated": 6
+  },
+  "warnings": [],
+  "notes": [
+    "Detected layout: model_based",
+    "Protocol: http",
+    "Transactions found: 3",
+    "Built IR with 3 transactions",
+    "Total response variants: 6",
+    "Generated 6 WireMock stubs"
+  ],
+  "writer_info": {
+    "max_file_size": 1048576,
+    "output_format": "wiremock",
+    "version": "1.0",
+    "files_written": 0,
+    "large_files_split": 0,
+    "total_large_file_size": 0
+  }
+}

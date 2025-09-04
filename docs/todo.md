@@ -46,8 +46,8 @@
 - [x] Explain mapping rules and any tradeoffs
 - [x] Troubleshooting section
 
-## Milestone 8 — Future enhancements
-- [ ] WireMock Cloud export format + API upload
-- [ ] Optional config file (YAML) for strategy knobs
-- [ ] Large-body splitting to `__files/`
-- [ ] Advanced scenario modeling helpers
+## Milestone 8 — Future enhancements ✅
+- [x] WireMock Cloud export format + API upload
+- [x] Optional config file (YAML) for strategy knobs
+- [x] Large-body splitting to `__files/`
+- [x] Advanced scenario modeling helpers

@@ -1,0 +1,35 @@
+# Test WireMock Cloud Configuration
+latency_strategy: uniform
+soap_match_strategy: both
+max_file_size: 1048576
+log_level: info
+
+# WireMock Cloud settings (test values)
+wiremock_cloud:
+  api_key: wm_test_key_12345
+  project_id: test_project_123
+  environment: test
+
+# JSON matching options
+json_matching:
+  ignore_array_order: true
+  ignore_extra_elements: true
+
+# XML matching options
+xml_matching:
+  normalize_whitespace: true
+
+# Priority strategy
+priority_strategy: weight_descending
+
+# Enable response templates
+enable_response_templates: true
+
+# Preserve DevTest metadata
+preserve_devtest_metadata: true
+
+# Create index files
+create_index_files: true
+
+# Create summary files
+create_summary_files: true

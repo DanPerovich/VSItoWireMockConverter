@@ -41,10 +41,10 @@ class TestCLI:
         
         parsed = parse_args(args)
         
-        assert parsed.latency == "uniform"
-        assert parsed.soap_match == "both"
-        assert parsed.log_level == "info"
-        assert parsed.max_file_size == 1024 * 1024  # 1MB
+        assert parsed.latency is None  # No default value when using config files
+        assert parsed.soap_match is None  # No default value when using config files
+        assert parsed.log_level is None  # No default value when using config files
+        assert parsed.max_file_size is None  # No default value when using config files
 
     def test_parse_args_version(self):
         """Test version argument."""
