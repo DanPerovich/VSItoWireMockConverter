@@ -129,16 +129,24 @@ class VSIConverter:
             self.report.add_note(f"Built IR with {len(ir.transactions)} transactions")
             self.report.add_note(f"Total response variants: {self.report.variants_count}")
 
-            # TODO: Implement remaining conversion logic
             # 3. Generate WireMock mappings
-            # 4. Save mappings and report
+            from vsi2wm.mapper import map_ir_to_wiremock
 
-            logger.info(
-                "IR building completed successfully - WireMock mapping to be implemented"
+            stubs = map_ir_to_wiremock(
+                ir,
+                latency_strategy=self.latency_strategy,
+                soap_match_strategy=self.soap_match_strategy,
             )
-            self.report.add_note(
-                "IR building completed - WireMock mapping not yet implemented"
-            )
+
+            # Update report with mapping results
+            self.report.stubs_generated = len(stubs)
+            self.report.add_note(f"Generated {len(stubs)} WireMock stubs")
+
+            # 4. Save mappings and report
+            self._save_mappings(stubs)
+
+            logger.info(f"Conversion completed successfully: {len(stubs)} stubs generated")
+            self.report.add_note("WireMock mapping completed successfully")
 
             # Save report
             self.report.save(self.output_dir)
@@ -150,3 +158,21 @@ class VSIConverter:
             self.report.add_warning(f"Conversion failed: {e}")
             self.report.save(self.output_dir)
             return 1
+
+    def _save_mappings(self, stubs: List[Dict[str, Any]]) -> None:
+        """Save WireMock stub mappings to files."""
+        logger.info(f"Saving {len(stubs)} stub mappings to {self.mappings_dir}")
+        
+        for i, stub in enumerate(stubs):
+            # Generate filename based on transaction ID and variant
+            transaction_id = stub.get("metadata", {}).get("devtest_transaction_id", f"stub_{i}")
+            filename = f"{transaction_id}_{i}.json"
+            file_path = self.mappings_dir / filename
+            
+            # Save stub with pretty formatting
+            with open(file_path, "w") as f:
+                json.dump(stub, f, indent=2)
+            
+            logger.debug(f"Saved stub to {file_path}")
+        
+        logger.info(f"Saved {len(stubs)} stub mappings to {self.mappings_dir}")

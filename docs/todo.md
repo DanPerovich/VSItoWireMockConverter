@@ -17,15 +17,15 @@
 - [x] Capture scripts in `selectionLogic.js`
 - [x] Capture simple state/correlation hints (setProperty, tokens)
 
-## Milestone 3 — Mapper (IR → WireMock)
-- [ ] REST JSON: default `equalToJson`; optional JSONPath
-- [ ] SOAP: default **both** header (SOAPAction) and XPath operation
-- [ ] XML bodies: default `equalToXml`; optional XPath
-- [ ] Latency: map ranges to `delayDistribution: {type: "uniform", lower, upper}`
-- [ ] Fixed: `fixedDelayMilliseconds`
-- [ ] One stub per variant; set `priority` by descending weight
-- [ ] Always add `transformers: ["response-template"]`
-- [ ] Embed DevTest metadata in `metadata`
+## Milestone 3 — Mapper (IR → WireMock) ✅
+- [x] REST JSON: default `equalToJson`; optional JSONPath
+- [x] SOAP: default **both** header (SOAPAction) and XPath operation
+- [x] XML bodies: default `equalToXml`; optional XPath
+- [x] Latency: map ranges to `delayDistribution: {type: "uniform", lower, upper}`
+- [x] Fixed: `fixedDelayMilliseconds`
+- [x] One stub per variant; set `priority` by descending weight
+- [x] Always add `transformers: ["response-template"]`
+- [x] Embed DevTest metadata in `metadata`
 
 ## Milestone 4 — Writers
 - [ ] Write `mappings/` files (pretty JSON)
