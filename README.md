@@ -21,7 +21,10 @@ poetry run vsi2wm --help
 ### Basic Usage
 
 ```bash
-# Convert a VSI file to WireMock mappings
+# Convert a VSI file to WireMock mappings (auto-generates output directory)
+poetry run vsi2wm convert --in service.vsi
+
+# Convert with custom output directory
 poetry run vsi2wm convert --in service.vsi --out output
 
 # With custom options
@@ -72,9 +75,9 @@ output/
 
 ### Required Arguments
 - `--in <file>`: Input VSI file path
-- `--out <dir>`: Output directory for WireMock mappings
 
 ### Optional Arguments
+- `--out <dir>`: Output directory for WireMock mappings (default: input filename without extension)
 - `--latency <strategy>`: Latency strategy
   - `uniform` (default): Convert ranges to uniform distribution
   - `fixed:<ms>`: Use fixed delay for all stubs
@@ -260,6 +263,23 @@ output/
 ```
 
 ## 🔧 Examples
+
+### Basic Conversion
+
+**Auto-generated output directory:**
+```bash
+# Input: service.vsi → Output: service/
+poetry run vsi2wm convert --in service.vsi
+
+# Input: my-api.vsi → Output: my-api/
+poetry run vsi2wm convert --in my-api.vsi
+```
+
+**Custom output directory:**
+```bash
+# Specify custom output directory
+poetry run vsi2wm convert --in service.vsi --out wiremock-stubs
+```
 
 ### REST JSON Service
 

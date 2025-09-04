@@ -1,0 +1,33 @@
+{
+  "priority": 1,
+  "request": {
+    "method": "POST",
+    "urlPath": "/users",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"name\": \"Charlie\", \"email\": \"charlie@example.com\"}",
+        "ignoreArrayOrder": true,
+        "ignoreExtraElements": true
+      }
+    ]
+  },
+  "response": {
+    "status": 400,
+    "jsonBody": {
+      "error": "Invalid email format"
+    },
+    "fixedDelayMilliseconds": 100,
+    "transformers": [
+      "response-template"
+    ]
+  },
+  "metadata": {
+    "devtest_transaction_id": "POST#/users",
+    "devtest_variant_weight": 0.1
+  }
+}

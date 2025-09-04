@@ -1,0 +1,86 @@
+{
+  "scenario_analysis": {
+    "total_transactions": 3,
+    "total_variants": 6,
+    "patterns_detected": [
+      "rest_api",
+      "correlation_scenario",
+      "error_scenarios"
+    ],
+    "complexity_score": 33,
+    "recommendations": [
+      "Correlation scenario detected. Consider using WireMock response templates.",
+      "Error scenarios detected. Ensure proper error handling in client applications."
+    ],
+    "statistics": {
+      "http_methods": {
+        "GET": 1,
+        "POST": 1,
+        "DELETE": 1
+      },
+      "status_codes": {
+        "200": 1,
+        "404": 2,
+        "201": 1,
+        "400": 1,
+        "204": 1
+      },
+      "content_types": {
+        "json": 5
+      },
+      "latency_ranges": {
+        "100-200ms": 1,
+        "50ms": 2,
+        "150-300ms": 1,
+        "100ms": 1,
+        "80-120ms": 1
+      },
+      "weight_distribution": {
+        "High (0.8-1.0)": 2,
+        "Low (0.2-0.49)": 2,
+        "Very Low (0.0-0.19)": 1,
+        "Medium (0.5-0.79)": 1
+      }
+    }
+  },
+  "optimization_results": {
+    "original_transactions": 3,
+    "original_variants": 6,
+    "optimizations_applied": [
+      "merge_similar_stubs",
+      "optimize_priorities",
+      "simplify_selection_logic",
+      "compress_large_responses"
+    ],
+    "performance_improvements": {
+      "merge_similar_stubs": {
+        "stubs_merged": 0,
+        "complexity_reduction": "0%",
+        "estimated_performance_gain": "5%"
+      },
+      "optimize_priorities": {
+        "priorities_optimized": 0,
+        "estimated_matching_improvement": "0%"
+      },
+      "simplify_selection_logic": {
+        "logic_simplified": 0,
+        "complexity_reduction": "0%"
+      },
+      "compress_large_responses": {
+        "large_responses_found": 0,
+        "compression_recommended": false,
+        "estimated_size_reduction": "0%"
+      }
+    },
+    "recommendations": [
+      "Similar stubs merged. Monitor for any impact on response accuracy."
+    ]
+  },
+  "summary": {
+    "total_transactions": 3,
+    "total_variants": 6,
+    "complexity_score": 33,
+    "patterns_detected": 3,
+    "optimizations_applied": 4
+  }
+}

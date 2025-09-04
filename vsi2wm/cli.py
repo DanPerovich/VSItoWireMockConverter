@@ -30,7 +30,8 @@ def parse_args(args: Optional[list[str]] = None) -> argparse.Namespace:
         epilog="""
 Examples:
   vsi2wm convert --in service.vsi --out output
-  vsi2wm convert --in service.vsi --out output --latency uniform --soap-match both --log-level debug
+  vsi2wm convert --in service.vsi                    # Auto-generates 'service' output directory
+  vsi2wm convert --in service.vsi --latency uniform --soap-match both --log-level debug
         """,
     )
 
@@ -51,8 +52,7 @@ Examples:
         "--out",
         dest="output_dir",
         type=Path,
-        required=True,
-        help="Output directory for WireMock mappings",
+        help="Output directory for WireMock mappings (default: input filename without extension)",
     )
     convert_parser.add_argument(
         "--config",
@@ -212,6 +212,13 @@ def main(args: Optional[list[str]] = None) -> int:
         # Set up logging
         setup_logging(config.log_level)
         logger = logging.getLogger(__name__)
+
+        # Auto-generate output directory if not provided
+        if parsed_args.command == "convert" and parsed_args.output_dir is None:
+            # Use input filename without extension as output directory
+            output_name = parsed_args.input_file.stem
+            parsed_args.output_dir = Path(output_name)
+            logger.info(f"Auto-generated output directory: {parsed_args.output_dir}")
 
         # Validate arguments
         validate_args(parsed_args)

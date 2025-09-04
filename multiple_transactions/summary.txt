@@ -1,0 +1,12 @@
+VSI to WireMock Conversion Summary
+========================================
+
+Total stubs generated: 6
+Files written: 6
+Large files split: 0
+
+No errors encountered.
+
+Output directory: multiple_transactions
+Mappings directory: multiple_transactions/mappings
+Files directory: multiple_transactions/__files
