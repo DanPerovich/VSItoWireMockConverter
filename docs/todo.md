@@ -11,11 +11,11 @@
 - [x] Extract source version/buildNumber if present
 - [x] HTTP-only gate (skip others with report entry)
 
-## Milestone 2 — IR builder
-- [ ] Build IR for requests (method, path/pathTemplate, headers, query, body)
-- [ ] Build IR for responses (status, headers, body, latency, weight)
-- [ ] Capture scripts in `selectionLogic.js`
-- [ ] Capture simple state/correlation hints (setProperty, tokens)
+## Milestone 2 — IR builder ✅
+- [x] Build IR for requests (method, path/pathTemplate, headers, query, body)
+- [x] Build IR for responses (status, headers, body, latency, weight)
+- [x] Capture scripts in `selectionLogic.js`
+- [x] Capture simple state/correlation hints (setProperty, tokens)
 
 ## Milestone 3 — Mapper (IR → WireMock)
 - [ ] REST JSON: default `equalToJson`; optional JSONPath

@@ -115,16 +115,29 @@ class VSIConverter:
                 f"Transactions found: {parse_result['transactions_count']}"
             )
 
-            # TODO: Implement remaining conversion logic
             # 2. Build Intermediate Representation
+            from vsi2wm.ir_builder import build_ir_from_vsi
+
+            ir = build_ir_from_vsi(self.input_file)
+
+            # Update report with IR results
+            self.report.variants_count = sum(
+                len(t.response_variants) for t in ir.transactions
+            )
+
+            # Add IR notes
+            self.report.add_note(f"Built IR with {len(ir.transactions)} transactions")
+            self.report.add_note(f"Total response variants: {self.report.variants_count}")
+
+            # TODO: Implement remaining conversion logic
             # 3. Generate WireMock mappings
             # 4. Save mappings and report
 
             logger.info(
-                "Parsing completed successfully - conversion logic to be implemented"
+                "IR building completed successfully - WireMock mapping to be implemented"
             )
             self.report.add_note(
-                "Parsing completed - conversion logic not yet implemented"
+                "IR building completed - WireMock mapping not yet implemented"
             )
 
             # Save report
