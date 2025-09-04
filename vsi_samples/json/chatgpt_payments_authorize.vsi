@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="payments_authorize" version="1.0">
+  <info>
+    <description>REST JSON service emulating card authorization responses</description>
+    <tags>REST,JSON,Payments,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="POST#/payments/authorize">
+      <rq>
+        <m>
+          <method>POST</method>
+          <path>/payments/authorize</path>
+          <matchTolerance>SIGNATURE</matchTolerance>
+          <headers>
+            <header name="Authorization">Bearer *</header>
+            <header name="Content-Type">application/json</header>
+          </headers>
+        </m>
+        <bd><![CDATA[
+{
+  "amount": {{=request_amount;/59.99/}},
+  "currency": "USD",
+  "card": { "pan": "4111111111111111", "exp":"12/27" },
+  "merchantId":"mrc_12345"
+}]]></bd>
+      </rq>
+      <rs>
+        <rp id="approved">
+          <m>
+            <status>200</status>
+            <latency ms="80-180">range</latency>
+            <selectionWeight>0.9</selectionWeight>
+          </m>
+          <bd><![CDATA[
+{
+  "authId":"{{=GUID()}}",
+  "status":"APPROVED",
+  "amount": {{=request_amount;/59.99/}},
+  "currency":"USD",
+  "avs":"Y",
+  "cvv":"M"
+}]]></bd>
+        </rp>
+        <rp id="declined_insufficient_funds">
+          <m>
+            <status>200</status>
+            <latency ms="80-180">range</latency>
+            <selectionWeight>0.1</selectionWeight>
+            <matchScript language="js"><![CDATA[
+var req = JSON.parse(lisa_vse_request.getBodyAsString());
+req.amount > 500;
+]]></matchScript>
+          </m>
+          <bd><![CDATA[
+{
+  "authId":"{{=GUID()}}",
+  "status":"DECLINED",
+  "reason":"INSUFFICIENT_FUNDS"
+}]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

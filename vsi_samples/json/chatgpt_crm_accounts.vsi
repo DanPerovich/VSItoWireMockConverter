@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="crm_accounts" version="1.0">
+  <info>
+    <description>REST JSON service simulating CRM account search with pagination</description>
+    <tags>REST,JSON,Salesforce,QueryParams,Pagination,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="GET#/accounts">
+      <rq>
+        <m>
+          <method>GET</method>
+          <path>/accounts</path>
+          <query>
+            <param name="name">*</param>
+            <param name="page">*</param>
+            <param name="pageSize">*</param>
+          </query>
+          <matchTolerance>SIGNATURE</matchTolerance>
+        </m>
+      </rq>
+      <rs>
+        <rp id="page_1">
+          <m><status>200</status><latency ms="40-120">range</latency></m>
+          <bd><![CDATA[
+{ "page": 1, "pageSize": 2, "total": 3,
+  "items": [
+    { "id":"acc_1001","name":"ACME Industrial" },
+    { "id":"acc_1002","name":"Acme Health" }
+  ]
+}]]></bd>
+        </rp>
+        <rp id="page_2">
+          <m>
+            <status>200</status>
+            <latency ms="40-120">range</latency>
+            <matchScript language="js"><![CDATA[
+var qp = lisa_vse_request.getArguments();
+qp && qp.get("page") == "2";
+]]></matchScript>
+          </m>
+          <bd><![CDATA[
+{ "page": 2, "pageSize": 2, "total": 3,
+  "items": [ { "id":"acc_1003","name":"Acme Retail" } ]
+}]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

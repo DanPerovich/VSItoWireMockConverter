@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="inventory_sessioned" version="1.0">
+  <info>
+    <description>REST JSON with stateful correlation on sessionId</description>
+    <tags>REST,JSON,Stateful,Correlation,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="POST#/session">
+      <rq>
+        <m><method>POST</method><path>/session</path></m>
+        <bd><![CDATA[{ "user":"tester" }]]></bd>
+      </rq>
+      <rs>
+        <rp id="session_created">
+          <m>
+            <status>201</status>
+            <latency ms="20-60">range</latency>
+            <setProperty name="sessionId">{{=GUID()}}</setProperty>
+          </m>
+          <bd><![CDATA[{ "sessionId":"{{=PROPERTY(sessionId)}}", "expiresIn": 300 }]]></bd>
+        </rp>
+      </rs>
+    </t>
+    <t id="GET#/inventory/{id}">
+      <rq>
+        <m>
+          <method>GET</method>
+          <pathTemplate>/inventory/{{id}}</pathTemplate>
+          <headers><header name="X-Session-Id">*</header></headers>
+        </m>
+      </rq>
+      <rs>
+        <rp id="ok_with_session">
+          <m>
+            <status>200</status>
+            <latency ms="30-90">range</latency>
+            <matchScript language="js"><![CDATA[
+var sid = lisa_vse_request.getArguments().get("headers.X-Session-Id");
+sid && sid.equals( testExec.getStateValue("sessionId") );
+]]></matchScript>
+          </m>
+          <bd><![CDATA[{ "itemId":"{{=PATHVAR(id)}}", "stock": 42 }]]></bd>
+        </rp>
+        <rp id="unauthorized">
+          <m><status>401</status><latency ms="10-30">range</latency></m>
+          <bd><![CDATA[{ "error":"missing_or_invalid_session" }]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

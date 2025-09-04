@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="ebs_supplier_inquiry" version="1.0">
+  <info>
+    <description>SOAP/XML service virtualizing Oracle EBS SupplierService.getSupplier</description>
+    <tags>SOAP,XML,OracleEBS,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="SOAP#SupplierService#getSupplier">
+      <rq>
+        <m>
+          <operation>getSupplier</operation>
+          <soapAction>urn:SupplierService#getSupplier</soapAction>
+          <endpoint>/soa-infra/services/erp/SupplierService</endpoint>
+          <protocol>http</protocol>
+          <headers>
+            <header name="Content-Type">text/xml;charset=UTF-8</header>
+          </headers>
+        </m>
+        <bd><![CDATA[
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sup="http://example.com/ebs/supplier">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <sup:getSupplier>
+      <sup:supplierNumber>{{=request_supplierNumber;/1002451/}}</sup:supplierNumber>
+    </sup:getSupplier>
+  </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+      </rq>
+      <rs>
+        <rp id="200_ok">
+          <m>
+            <status>200</status>
+            <latency ms="50-150">range</latency>
+            <matchTolerance>OPERATION</matchTolerance>
+          </m>
+          <bd><![CDATA[
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sup="http://example.com/ebs/supplier">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <sup:getSupplierResponse>
+      <sup:supplier>
+        <sup:number>{{=request_supplierNumber;/1002451/}}</sup:number>
+        <sup:name>ACME Industrial</sup:name>
+        <sup:status>ACTIVE</sup:status>
+        <sup:updated>{{=doDateDeltaFromCurrent("yyyy-MM-dd","-1")}}</sup:updated>
+      </sup:supplier>
+    </sup:getSupplierResponse>
+  </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+        </rp>
+        <rp id="404_not_found">
+          <m>
+            <status>404</status>
+            <latency ms="50-150">range</latency>
+            <matchScript language="js"><![CDATA[
+var body = lisa_vse_request.getBodyAsString();
+body && body.indexOf("0000000")>=0;
+]]></matchScript>
+          </m>
+          <bd><![CDATA[
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Body>
+    <soapenv:Fault>
+      <faultcode>soapenv:Client</faultcode>
+      <faultstring>Supplier not found</faultstring>
+    </soapenv:Fault>
+  </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>
