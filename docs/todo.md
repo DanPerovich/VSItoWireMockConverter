@@ -41,10 +41,10 @@
 - [x] Golden-file tests: compare produced mappings to expected JSON
 - [x] Snapshot tests for `report.json`
 
-## Milestone 7 — Docs
-- [ ] `README.md` with quickstart and examples
-- [ ] Explain mapping rules and any tradeoffs
-- [ ] Troubleshooting section
+## Milestone 7 — Docs ✅
+- [x] `README.md` with quickstart and examples
+- [x] Explain mapping rules and any tradeoffs
+- [x] Troubleshooting section
 
 ## Milestone 8 — Future enhancements
 - [ ] WireMock Cloud export format + API upload

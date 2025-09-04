@@ -1,24 +1,10 @@
 # VSI to WireMock Converter
 
-A command-line tool to convert CA LISA / Broadcom DevTest `.vsi` files to WireMock stub mappings for HTTP/S services.
+A powerful command-line tool to convert CA LISA / Broadcom DevTest `.vsi` files to WireMock stub mappings for HTTP/S services. This tool enables seamless migration from DevTest virtualization to WireMock-based API mocking.
 
-## Features
+## 🚀 Quick Start
 
-- Parse DevTest 9.x+ VSI files (HTTP/S only)
-- Support both VSI layouts: model-based (`<bd>`) and RR-pairs (`<reqData>/<rspData>`)
-- Generate WireMock stub mappings compatible with both WireMock Cloud and WireMock OSS
-- Map DevTest latency ranges to WireMock random uniform delay
-- Support for REST JSON and SOAP XML services
-- Generate conversion reports with warnings and statistics
-
-## Installation
-
-### Prerequisites
-
-- Python 3.11 or higher
-- Poetry (for development)
-
-### Install from source
+### Installation
 
 ```bash
 # Clone the repository
@@ -28,80 +14,256 @@ cd VSItoWireMockConverter
 # Install with Poetry
 poetry install
 
-# Install the console script
-poetry install --with dev
+# Verify installation
+poetry run vsi2wm --help
 ```
 
-## Usage
-
-### Basic conversion
+### Basic Usage
 
 ```bash
 # Convert a VSI file to WireMock mappings
-vsi2wm convert --in service.vsi --out output
+poetry run vsi2wm convert --in service.vsi --out output
 
 # With custom options
-vsi2wm convert \
+poetry run vsi2wm convert \
   --in service.vsi \
   --out output \
   --latency uniform \
   --soap-match both \
-  --log-level debug
+  --log-level info \
+  --max-file-size 1048576
 ```
 
-### Command line options
-
-- `--in`: Input VSI file path (required)
-- `--out`: Output directory for WireMock mappings (required)
-- `--latency`: Latency strategy - `uniform` (default) or `fixed:<ms>`
-- `--soap-match`: SOAP matching strategy - `soapAction`, `xpath`, or `both` (default: `both`)
-- `--log-level`: Logging level - `debug`, `info`, `warn`, `error` (default: `info`)
-- `--version`: Show version information
-
-### Output structure
+### Example Output
 
 ```
 output/
-├── mappings/          # WireMock stub mappings (*.json)
-├── __files/          # Large response bodies (if split enabled)
-└── report.json       # Conversion report with statistics
+├── mappings/                    # WireMock stub mappings (*.json)
+│   ├── GET__accounts_0.json
+│   ├── POST__users_1.json
+│   └── ...
+├── __files/                     # Large response bodies (if split)
+│   └── GET__accounts_0_body.json
+├── report.json                  # Conversion report with statistics
+├── stubs_index.json            # Index of all generated stubs
+└── summary.txt                 # Human-readable summary
 ```
 
-## Development
+## 📋 Features
 
-### Setup development environment
+### ✅ Supported VSI Formats
+- **DevTest 9.x+ VSI files** (HTTP/S only)
+- **Model-based layout** (`<bd>` elements)
+- **RR-pairs layout** (`<reqData>/<rspData>` elements)
+- **REST JSON services** with query parameters
+- **SOAP XML services** with SOAPAction headers
+- **Multiple response variants** with weights
+- **Latency ranges** and fixed delays
+- **Selection logic** (matchScript)
 
-```bash
-# Install dependencies
-poetry install
+### ✅ WireMock Compatibility
+- **WireMock Cloud** export format
+- **WireMock OSS** compatibility
+- **Response templates** for dynamic responses
+- **Priority-based stub ordering**
+- **Metadata preservation** from DevTest
 
-# Run tests
-poetry run pytest
+## 🛠️ Command Line Options
 
-# Run linting
-poetry run black vsi2wm tests
-poetry run isort vsi2wm tests
-poetry run mypy vsi2wm
+### Required Arguments
+- `--in <file>`: Input VSI file path
+- `--out <dir>`: Output directory for WireMock mappings
+
+### Optional Arguments
+- `--latency <strategy>`: Latency strategy
+  - `uniform` (default): Convert ranges to uniform distribution
+  - `fixed:<ms>`: Use fixed delay for all stubs
+- `--soap-match <strategy>`: SOAP matching strategy
+  - `soapAction`: Match only SOAPAction header
+  - `xpath`: Match only XPath body patterns
+  - `both` (default): Match both header and body
+- `--max-file-size <bytes>`: Maximum file size before splitting (default: 1048576)
+- `--log-level <level>`: Logging level (debug, info, warn, error)
+
+### Exit Codes
+- `0`: Success
+- `1`: General errors
+- `2`: Validation errors (file not found, wrong extension, etc.)
+- `3`: Permission errors
+
+## 📖 Mapping Rules
+
+### Request Mapping
+
+#### HTTP Method & URL
+```json
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/accounts"
+  }
+}
 ```
 
-### Project structure
-
+#### Headers
+```json
+{
+  "request": {
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "Authorization": {
+        "equalTo": "Bearer token123"
+      }
+    }
+  }
+}
 ```
-vsi2wm/
-├── __init__.py       # Package initialization
-├── cli.py           # Command-line interface
-└── core.py          # Core conversion logic
 
-tests/
-├── __init__.py
-├── test_cli.py      # CLI tests
-└── test_core.py     # Core logic tests
+#### Query Parameters
+```json
+{
+  "request": {
+    "queryParameters": {
+      "page": {
+        "equalTo": "1"
+      },
+      "limit": {
+        "equalTo": "10"
+      }
+    }
+  }
+}
 ```
 
-## Supported VSI formats
+#### Body Matching
+**JSON Bodies:**
+```json
+{
+  "request": {
+    "bodyPatterns": [
+      {
+        "equalToJson": "{\"name\": \"John\", \"email\": \"john@example.com\"}",
+        "ignoreArrayOrder": true,
+        "ignoreExtraElements": true
+      }
+    ]
+  }
+}
+```
 
-### REST JSON example
+**XML Bodies:**
+```json
+{
+  "request": {
+    "bodyPatterns": [
+      {
+        "equalToXml": "<user><name>John</name></user>"
+      }
+    ]
+  }
+}
+```
 
+**SOAP Services:**
+```json
+{
+  "request": {
+    "headers": {
+      "SOAPAction": {
+        "equalTo": "http://example.com/GetUser"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "equalToXml": "<soapenv:Envelope>...</soapenv:Envelope>"
+      }
+    ]
+  }
+}
+```
+
+### Response Mapping
+
+#### Status & Headers
+```json
+{
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
+```
+
+#### Body Content
+**JSON Responses:**
+```json
+{
+  "response": {
+    "jsonBody": {
+      "id": 123,
+      "name": "John Doe",
+      "email": "john@example.com"
+    }
+  }
+}
+```
+
+**XML Responses:**
+```json
+{
+  "response": {
+    "body": "<user><id>123</id><name>John Doe</name></user>"
+  }
+}
+```
+
+#### Latency
+**Range Latency:**
+```json
+{
+  "response": {
+    "delayDistribution": {
+      "type": "uniform",
+      "lower": 100,
+      "upper": 200
+    }
+  }
+}
+```
+
+**Fixed Latency:**
+```json
+{
+  "response": {
+    "fixedDelayMilliseconds": 150
+  }
+}
+```
+
+#### Priority & Metadata
+```json
+{
+  "priority": 0,
+  "response": {
+    "transformers": ["response-template"]
+  },
+  "metadata": {
+    "devtest_transaction_id": "GET#/accounts",
+    "devtest_variant_weight": 0.8,
+    "devtest_selection_logic": "request.page == '1'"
+  }
+}
+```
+
+## 🔧 Examples
+
+### REST JSON Service
+
+**Input VSI:**
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <serviceImage name="crm_accounts" version="1.0">
@@ -112,15 +274,19 @@ tests/
           <method>GET</method>
           <path>/accounts</path>
           <query>
-            <param name="name">*</param>
-            <param name="page">*</param>
+            <param name="page">1</param>
+            <param name="limit">10</param>
           </query>
         </m>
       </rq>
       <rs>
-        <rp id="page_1">
-          <m><status>200</status><latency ms="40-120">range</latency></m>
-          <bd><![CDATA[{"page": 1, "items": [...]}]]></bd>
+        <rp id="success">
+          <m>
+            <status>200</status>
+            <latency ms="100-200">range</latency>
+            <weight>0.8</weight>
+          </m>
+          <bd><![CDATA[{"accounts": [{"id": 1, "name": "ACME Corp"}]}]]></bd>
         </rp>
       </rs>
     </t>
@@ -128,25 +294,64 @@ tests/
 </serviceImage>
 ```
 
-### SOAP XML example
+**Generated WireMock Stub:**
+```json
+{
+  "priority": 0,
+  "request": {
+    "method": "GET",
+    "urlPath": "/accounts",
+    "queryParameters": {
+      "page": {"equalTo": "1"},
+      "limit": {"equalTo": "10"}
+    }
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "accounts": [{"id": 1, "name": "ACME Corp"}]
+    },
+    "delayDistribution": {
+      "type": "uniform",
+      "lower": 100,
+      "upper": 200
+    },
+    "transformers": ["response-template"]
+  },
+  "metadata": {
+    "devtest_transaction_id": "GET#/accounts",
+    "devtest_variant_weight": 0.8
+  }
+}
+```
 
+### SOAP XML Service
+
+**Input VSI:**
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <serviceImage name="supplier_service" version="1.0">
   <transactions>
-    <t id="SOAP#SupplierService#getSupplier">
+    <t id="POST#/supplier">
       <rq>
         <m>
-          <operation>getSupplier</operation>
-          <soapAction>urn:SupplierService#getSupplier</soapAction>
-          <endpoint>/soa-infra/services/erp/SupplierService</endpoint>
+          <method>POST</method>
+          <path>/supplier</path>
+          <headers>
+            <header name="SOAPAction">urn:SupplierService#getSupplier</header>
+          </headers>
         </m>
-        <bd><![CDATA[<soapenv:Envelope>...</soapenv:Envelope>]]></bd>
+        <bd><![CDATA[<soapenv:Envelope><soapenv:Body><getSupplier><id>123</id></getSupplier></soapenv:Body></soapenv:Envelope>]]></bd>
       </rq>
       <rs>
-        <rp id="200_ok">
-          <m><status>200</status><latency ms="50-150">range</latency></m>
-          <bd><![CDATA[<soapenv:Envelope>...</soapenv:Envelope>]]></bd>
+        <rp id="success">
+          <m>
+            <status>200</status>
+            <latency ms="150">fixed</latency>
+            <weight>0.9</weight>
+            <matchScript language="js"><![CDATA[request.getSupplier.id == "123"]]></matchScript>
+          </m>
+          <bd><![CDATA[<soapenv:Envelope><soapenv:Body><getSupplierResponse><supplier><id>123</id><name>ACME Corp</name></supplier></getSupplierResponse></soapenv:Body></soapenv:Envelope>]]></bd>
         </rp>
       </rs>
     </t>
@@ -154,49 +359,169 @@ tests/
 </serviceImage>
 ```
 
-## Roadmap
+**Generated WireMock Stub:**
+```json
+{
+  "priority": 0,
+  "request": {
+    "method": "POST",
+    "urlPath": "/supplier",
+    "headers": {
+      "SOAPAction": {
+        "equalTo": "urn:SupplierService#getSupplier"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "equalToXml": "<soapenv:Envelope><soapenv:Body><getSupplier><id>123</id></getSupplier></soapenv:Body></soapenv:Envelope>"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "body": "<soapenv:Envelope><soapenv:Body><getSupplierResponse><supplier><id>123</id><name>ACME Corp</name></supplier></getSupplierResponse></soapenv:Body></soapenv:Envelope>",
+    "fixedDelayMilliseconds": 150,
+    "transformers": ["response-template"]
+  },
+  "metadata": {
+    "devtest_transaction_id": "POST#/supplier",
+    "devtest_variant_weight": 0.9,
+    "devtest_selection_logic": "request.getSupplier.id == \"123\""
+  }
+}
+```
 
-### Milestone 0 - Project scaffold ✅
-- [x] Repo init (Python 3.11+)
-- [x] Packaging: `poetry` with console script `vsi2wm`
-- [x] Logger with `--log-level`
+## 🚨 Troubleshooting
 
-### Milestone 1 - Parser & detector
-- [ ] Streaming XML parse of `.vsi`
-- [ ] Detect layout: meta props vs inline, `<bd>` vs `<reqData>/<rspData>`
-- [ ] Extract source version/buildNumber if present
-- [ ] HTTP-only gate (skip others with report entry)
+### Common Issues
 
-### Milestone 2 - IR builder
-- [ ] Build IR for requests (method, path/pathTemplate, headers, query, body)
-- [ ] Build IR for responses (status, headers, body, latency, weight)
-- [ ] Capture scripts in `selectionLogic.js`
-- [ ] Capture simple state/correlation hints (setProperty, tokens)
+#### File Not Found
+```bash
+Error: Input file not found: service.vsi
+```
+**Solution:** Ensure the VSI file exists and the path is correct.
 
-### Milestone 3 - Mapper (IR → WireMock)
-- [ ] REST JSON: default `equalToJson`; optional JSONPath
-- [ ] SOAP: default **both** header (SOAPAction) and XPath operation
-- [ ] XML bodies: default `equalToXml`; optional XPath
-- [ ] Latency: map ranges to `delayDistribution: {type: "uniform", lower, upper}`
-- [ ] Fixed: `fixedDelayMilliseconds`
-- [ ] One stub per variant; set `priority` by descending weight
-- [ ] Always add `transformers: ["response-template"]`
-- [ ] Embed DevTest metadata in `metadata`
+#### Wrong File Extension
+```bash
+Error: Input file must have .vsi extension: service.xml
+```
+**Solution:** Ensure the input file has a `.vsi` extension.
 
-## Contributing
+#### Permission Errors
+```bash
+Error: Permission denied creating output directory: /protected/output
+```
+**Solution:** Check directory permissions or use a different output location.
+
+#### Large File Splitting
+```bash
+Warning: Response body exceeds max file size (1048576 bytes), splitting to __files/
+```
+**Solution:** This is normal behavior. Large responses are automatically split to separate files.
+
+#### Non-HTTP Protocol
+```bash
+Warning: Skipping non-HTTP protocol: MQ
+```
+**Solution:** Only HTTP/HTTPS protocols are supported. MQ and other protocols are skipped.
+
+### Debug Mode
+
+Enable debug logging to see detailed conversion information:
+
+```bash
+poetry run vsi2wm convert --in service.vsi --out output --log-level debug
+```
+
+### Conversion Report
+
+Check the `report.json` file for detailed conversion statistics:
+
+```json
+{
+  "source_file": "service.vsi",
+  "source_version": "1.0",
+  "build_number": "1.0.0",
+  "counts": {
+    "transactions": 3,
+    "variants": 6,
+    "stubs_generated": 6
+  },
+  "warnings": [],
+  "writer_info": {
+    "output_format": "wiremock",
+    "files_written": 6,
+    "large_files_split": 1
+  }
+}
+```
+
+## 🧪 Testing
+
+### Run All Tests
+```bash
+poetry run pytest
+```
+
+### Run Specific Test Categories
+```bash
+# Golden file tests
+poetry run pytest tests/test_golden_files.py
+
+# CLI tests
+poetry run pytest tests/test_cli.py
+
+# Core functionality tests
+poetry run pytest tests/test_core.py
+```
+
+### Test Coverage
+```bash
+poetry run pytest --cov=vsi2wm --cov-report=html
+```
+
+## 🔄 Migration Guide
+
+### From DevTest to WireMock
+
+1. **Export VSI files** from DevTest Studio
+2. **Convert to WireMock** using this tool
+3. **Import stubs** into WireMock Cloud or OSS
+4. **Verify functionality** with your test suite
+
+### Best Practices
+
+- **Test thoroughly** after conversion
+- **Review generated stubs** for accuracy
+- **Adjust priorities** if needed
+- **Monitor performance** with new latency settings
+- **Backup original VSI files**
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+5. Run the test suite (`poetry run pytest`)
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
 
-## License
+## 📄 License
 
 [Add your license information here]
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-- CA LISA / Broadcom DevTest for the VSI format
-- WireMock for the excellent mocking framework
+- **CA LISA / Broadcom DevTest** for the VSI format
+- **WireMock** for the excellent mocking framework
+- **Python community** for the amazing ecosystem
+
+## 📞 Support
+
+For issues and questions:
+- Check the [troubleshooting section](#-troubleshooting)
+- Review the [examples](#-examples)
+- Open an issue on GitHub
+- Check the [conversion report](#conversion-report) for details
