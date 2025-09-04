@@ -85,10 +85,10 @@ def validate_args(args: argparse.Namespace) -> None:
     if args.command == "convert":
         if not args.input_file.exists():
             raise FileNotFoundError(f"Input file not found: {args.input_file}")
-        
+
         if not args.input_file.suffix.lower() == ".vsi":
             raise ValueError(f"Input file must have .vsi extension: {args.input_file}")
-        
+
         # Create output directory if it doesn't exist
         args.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -97,40 +97,40 @@ def main(args: Optional[list[str]] = None) -> int:
     """Main entry point for the CLI."""
     try:
         parsed_args = parse_args(args)
-        
+
         if not parsed_args.command:
             # No command specified, show help
             parse_args(["--help"])
             return 1
-        
+
         # Set up logging
         setup_logging(parsed_args.log_level)
         logger = logging.getLogger(__name__)
-        
+
         # Validate arguments
         validate_args(parsed_args)
-        
+
         if parsed_args.command == "convert":
             logger.info(f"Starting VSI to WireMock conversion")
             logger.info(f"Input: {parsed_args.input_file}")
             logger.info(f"Output: {parsed_args.output_dir}")
             logger.info(f"Latency strategy: {parsed_args.latency}")
             logger.info(f"SOAP match strategy: {parsed_args.soap_match}")
-            
+
             # Import and run converter
             from vsi2wm.core import VSIConverter
-            
+
             converter = VSIConverter(
                 input_file=parsed_args.input_file,
                 output_dir=parsed_args.output_dir,
                 latency_strategy=parsed_args.latency,
                 soap_match_strategy=parsed_args.soap_match,
             )
-            
+
             return converter.convert()
-        
+
         return 0
-        
+
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
