@@ -1,0 +1,59 @@
+{
+  "total_stubs": 6,
+  "stubs": [
+    {
+      "index": 0,
+      "transaction_id": "stub_0",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 0,
+      "filename": "stub_0_0.json"
+    },
+    {
+      "index": 1,
+      "transaction_id": "stub_1",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 1,
+      "filename": "stub_1_1.json"
+    },
+    {
+      "index": 2,
+      "transaction_id": "stub_2",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 0,
+      "filename": "stub_2_2.json"
+    },
+    {
+      "index": 3,
+      "transaction_id": "stub_3",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 0,
+      "filename": "stub_3_3.json"
+    },
+    {
+      "index": 4,
+      "transaction_id": "stub_4",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 1,
+      "filename": "stub_4_4.json"
+    },
+    {
+      "index": 5,
+      "transaction_id": "stub_5",
+      "method": "GET",
+      "url": "/",
+      "status": 200,
+      "priority": 0,
+      "filename": "stub_5_5.json"
+    }
+  ]
+}

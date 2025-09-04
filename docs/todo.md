@@ -27,9 +27,9 @@
 - [x] Always add `transformers: ["response-template"]`
 - [x] Embed DevTest metadata in `metadata`
 
-## Milestone 4 — Writers
-- [ ] Write `mappings/` files (pretty JSON)
-- [ ] Write `report.json`
+## Milestone 4 — Writers ✅
+- [x] Write `mappings/` files (pretty JSON)
+- [x] Write `report.json`
 
 ## Milestone 5 — CLI
 - [ ] `vsi2wm convert --in file.vsi --out outdir --latency uniform --soap-match both --log-level info`
