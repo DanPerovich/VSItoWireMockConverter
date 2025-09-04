@@ -1,0 +1,49 @@
+{
+  "priority": 0,
+  "request": {
+    "method": "GET",
+    "urlPath": "/accounts",
+    "queryParameters": {
+      "name": {
+        "equalTo": "*"
+      },
+      "page": {
+        "equalTo": "*"
+      },
+      "pageSize": {
+        "equalTo": "*"
+      }
+    }
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "page": 1,
+      "pageSize": 2,
+      "total": 3,
+      "items": [
+        {
+          "id": "acc_1001",
+          "name": "ACME Industrial"
+        },
+        {
+          "id": "acc_1002",
+          "name": "Acme Health"
+        }
+      ]
+    },
+    "delayDistribution": {
+      "type": "uniform",
+      "lower": 40,
+      "upper": 120
+    },
+    "transformers": [
+      "response-template"
+    ]
+  },
+  "metadata": {
+    "devtest_selection_logic": "var qp = lisa_vse_request.getArguments();\nqp && qp.get(\"page\") == \"2\";",
+    "devtest_transaction_id": "GET#/accounts",
+    "devtest_variant_weight": 1.0
+  }
+}

@@ -166,7 +166,9 @@ class VSIConverter:
         for i, stub in enumerate(stubs):
             # Generate filename based on transaction ID and variant
             transaction_id = stub.get("metadata", {}).get("devtest_transaction_id", f"stub_{i}")
-            filename = f"{transaction_id}_{i}.json"
+            # Replace invalid filename characters
+            safe_transaction_id = transaction_id.replace("#", "_").replace("/", "_").replace("\\", "_")
+            filename = f"{safe_transaction_id}_{i}.json"
             file_path = self.mappings_dir / filename
             
             # Save stub with pretty formatting
