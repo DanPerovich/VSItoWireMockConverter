@@ -1,0 +1,23 @@
+{
+  "total_stubs": 2,
+  "stubs": [
+    {
+      "index": 0,
+      "transaction_id": "stub_0",
+      "method": "GET",
+      "url": "/users",
+      "status": 200,
+      "priority": 0,
+      "filename": "stub_0_0.json"
+    },
+    {
+      "index": 1,
+      "transaction_id": "stub_1",
+      "method": "GET",
+      "url": "/users",
+      "status": 404,
+      "priority": 1,
+      "filename": "stub_1_1.json"
+    }
+  ]
+}

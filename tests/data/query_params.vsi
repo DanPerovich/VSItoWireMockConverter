@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="query_params" version="1.0" buildNumber="1.0.0">
+  <info>
+    <description>REST service with query parameters for testing</description>
+    <tags>REST,JSON,QueryParams,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="GET#/products">
+      <rq>
+        <m>
+          <method>GET</method>
+          <path>/products</path>
+          <protocol>http</protocol>
+          <query>
+            <param name="category">electronics</param>
+            <param name="limit">10</param>
+            <param name="page">1</param>
+          </query>
+          <headers>
+            <header name="Content-Type">application/json</header>
+          </headers>
+        </m>
+      </rq>
+      <rs>
+        <rp id="success">
+          <m>
+            <status>200</status>
+            <latency ms="50-150">range</latency>
+            <weight>1.0</weight>
+          </m>
+          <bd><![CDATA[{"products": [{"id": "P1", "name": "Laptop", "price": 999.99}, {"id": "P2", "name": "Phone", "price": 599.99}], "total": 2, "page": 1}]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

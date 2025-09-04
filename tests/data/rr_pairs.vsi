@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="rr_pairs" version="1.5" buildNumber="1.5.0">
+  <info>
+    <description>RR-pairs layout VSI for testing</description>
+    <tags>REST,JSON,RR-pairs,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="POST#/orders">
+      <rq>
+        <m>
+          <method>POST</method>
+          <path>/orders</path>
+          <protocol>http</protocol>
+          <headers>
+            <header name="Content-Type">application/json</header>
+            <header name="Authorization">Bearer token123</header>
+          </headers>
+        </m>
+        <bd><![CDATA[{"productId": "ABC123", "quantity": 2}]]></bd>
+      </rq>
+      <rs>
+        <rp id="created">
+          <m>
+            <status>201</status>
+            <latency ms="200-400">range</latency>
+            <weight>0.9</weight>
+          </m>
+          <bd><![CDATA[{"orderId": "ORD-001", "status": "created", "total": 99.99}]]></bd>
+        </rp>
+        <rp id="bad_request">
+          <m>
+            <status>400</status>
+            <latency ms="100">fixed</latency>
+            <weight>0.1</weight>
+          </m>
+          <bd><![CDATA[{"error": "Invalid product ID"}]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

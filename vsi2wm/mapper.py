@@ -70,12 +70,12 @@ class WireMockMapper:
         }
         
         # Add metadata
+        stub["metadata"] = {
+            "devtest_transaction_id": transaction.id,
+            "devtest_variant_weight": variant.weight,
+        }
         if transaction.selection_logic:
-            stub["metadata"] = {
-                "devtest_selection_logic": transaction.selection_logic,
-                "devtest_transaction_id": transaction.id,
-                "devtest_variant_weight": variant.weight,
-            }
+            stub["metadata"]["devtest_selection_logic"] = transaction.selection_logic
         
         return stub
 

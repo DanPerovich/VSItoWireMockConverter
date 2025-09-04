@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="simple_rest" version="1.0" buildNumber="1.0.0">
+  <info>
+    <description>Simple REST JSON service for testing</description>
+    <tags>REST,JSON,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="GET#/users">
+      <rq>
+        <m>
+          <method>GET</method>
+          <path>/users</path>
+          <protocol>http</protocol>
+          <headers>
+            <header name="Content-Type">application/json</header>
+          </headers>
+        </m>
+      </rq>
+      <rs>
+        <rp id="success">
+          <m>
+            <status>200</status>
+            <latency ms="100-200">range</latency>
+            <weight>1.0</weight>
+          </m>
+          <bd><![CDATA[{"users": [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}]}]]></bd>
+        </rp>
+        <rp id="not_found">
+          <m>
+            <status>404</status>
+            <latency ms="50">fixed</latency>
+            <weight>0.1</weight>
+          </m>
+          <bd><![CDATA[{"error": "Users not found"}]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

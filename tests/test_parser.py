@@ -360,8 +360,8 @@ class TestVSIParser:
             assert result["protocol"] == "https"
             assert result["is_http"] is True
             assert (
-                result["transactions_count"] == 1
-            )  # Only counts during layout detection
+                result["transactions_count"] == 2
+            )  # Counts all transactions during layout detection
             assert result["warnings"] == []
 
             # Cleanup

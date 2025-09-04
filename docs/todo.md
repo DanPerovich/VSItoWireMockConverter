@@ -36,10 +36,10 @@
 - [x] Validate args; helpful error messages
 - [x] Exit codes: 0 success, non-zero on fatal parse/mapping errors
 
-## Milestone 6 — Test data & unit tests
-- [ ] Build tiny synthetic VSIs for: SOAP, REST, RR-pairs, model-based, weights, ranges
-- [ ] Golden-file tests: compare produced mappings to expected JSON
-- [ ] Snapshot tests for `report.json`
+## Milestone 6 — Test data & unit tests ✅
+- [x] Build tiny synthetic VSIs for: SOAP, REST, RR-pairs, model-based, weights, ranges
+- [x] Golden-file tests: compare produced mappings to expected JSON
+- [x] Snapshot tests for `report.json`
 
 ## Milestone 7 — Docs
 - [ ] `README.md` with quickstart and examples

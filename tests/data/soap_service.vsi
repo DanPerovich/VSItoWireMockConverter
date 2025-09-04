@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage name="soap_service" version="2.0" buildNumber="2.0.0">
+  <info>
+    <description>SOAP XML service for testing</description>
+    <tags>SOAP,XML,HTTPS</tags>
+  </info>
+  <transactions>
+    <t id="POST#/soap/service">
+      <rq>
+        <m>
+          <method>POST</method>
+          <path>/soap/service</path>
+          <protocol>http</protocol>
+          <headers>
+            <header name="Content-Type">text/xml</header>
+            <header name="SOAPAction">http://example.com/GetUser</header>
+          </headers>
+        </m>
+        <bd><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <GetUserRequest>
+            <userId>123</userId>
+        </GetUserRequest>
+    </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+      </rq>
+      <rs>
+        <rp id="success">
+          <m>
+            <status>200</status>
+            <latency ms="150-300">range</latency>
+            <weight>0.8</weight>
+            <matchScript language="js"><![CDATA[request.GetUserRequest.userId == "123"]]></matchScript>
+          </m>
+          <bd><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <GetUserResponse>
+            <user>
+                <id>123</id>
+                <name>John Doe</name>
+                <email>john@example.com</email>
+            </user>
+        </GetUserResponse>
+    </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+        </rp>
+        <rp id="error">
+          <m>
+            <status>500</status>
+            <latency ms="100">fixed</latency>
+            <weight>0.2</weight>
+          </m>
+          <bd><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Body>
+        <soapenv:Fault>
+            <faultcode>SOAP-ENV:Server</faultcode>
+            <faultstring>User not found</faultstring>
+        </soapenv:Fault>
+    </soapenv:Body>
+</soapenv:Envelope>]]></bd>
+        </rp>
+      </rs>
+    </t>
+  </transactions>
+</serviceImage>

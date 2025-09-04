@@ -38,11 +38,14 @@ class VSIParser:
 
             for event, elem in context:
                 if event == "start":
+                    # Check for transaction elements to count
+                    if elem.tag == "t":
+                        self.transactions_count += 1
+                    
                     # Check for model-based layout indicators
-                    if elem.tag == "bd":
+                    elif elem.tag == "bd":
                         self.layout = VSILayout.MODEL_BASED
                         logger.info("Detected model-based layout (uses <bd> elements)")
-                        break
 
                     # Check for RR-pairs layout indicators
                     elif elem.tag in ["reqData", "rspData"]:
@@ -50,11 +53,6 @@ class VSIParser:
                         logger.info(
                             "Detected RR-pairs layout (uses <reqData>/<rspData> elements)"
                         )
-                        break
-
-                    # Check for transaction elements to count
-                    elif elem.tag == "t":
-                        self.transactions_count += 1
 
                 # Clear element to free memory
                 elem.clear()
