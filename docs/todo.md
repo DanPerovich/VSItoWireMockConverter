@@ -31,10 +31,10 @@
 - [x] Write `mappings/` files (pretty JSON)
 - [x] Write `report.json`
 
-## Milestone 5 — CLI
-- [ ] `vsi2wm convert --in file.vsi --out outdir --latency uniform --soap-match both --log-level info`
-- [ ] Validate args; helpful error messages
-- [ ] Exit codes: 0 success, non-zero on fatal parse/mapping errors
+## Milestone 5 — CLI ✅
+- [x] `vsi2wm convert --in file.vsi --out outdir --latency uniform --soap-match both --log-level info`
+- [x] Validate args; helpful error messages
+- [x] Exit codes: 0 success, non-zero on fatal parse/mapping errors
 
 ## Milestone 6 — Test data & unit tests
 - [ ] Build tiny synthetic VSIs for: SOAP, REST, RR-pairs, model-based, weights, ranges

@@ -1,0 +1,12 @@
+VSI to WireMock Conversion Summary
+========================================
+
+Total stubs generated: 2
+Files written: 2
+Large files split: 1
+
+No errors encountered.
+
+Output directory: test_output_milestone5
+Mappings directory: test_output_milestone5/mappings
+Files directory: test_output_milestone5/__files
