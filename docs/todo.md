@@ -5,11 +5,11 @@
 - [x] Packaging: `poetry` with console script `vsi2wm`
 - [x] Logger with `--log-level`
 
-## Milestone 1 — Parser & detector
-- [ ] Streaming XML parse of `.vsi`
-- [ ] Detect layout: meta props vs inline, `<bd>` vs `<reqData>/<rspData>`
-- [ ] Extract source version/buildNumber if present
-- [ ] HTTP-only gate (skip others with report entry)
+## Milestone 1 — Parser & detector ✅
+- [x] Streaming XML parse of `.vsi`
+- [x] Detect layout: meta props vs inline, `<bd>` vs `<reqData>/<rspData>`
+- [x] Extract source version/buildNumber if present
+- [x] HTTP-only gate (skip others with report entry)
 
 ## Milestone 2 — IR builder
 - [ ] Build IR for requests (method, path/pathTemplate, headers, query, body)

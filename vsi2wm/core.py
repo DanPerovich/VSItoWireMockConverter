@@ -75,14 +75,39 @@ class VSIConverter:
         try:
             logger.info(f"Starting conversion of {self.input_file}")
             
-            # TODO: Implement actual conversion logic
             # 1. Parse VSI file
+            from vsi2wm.parser import parse_vsi_file
+            
+            parse_result = parse_vsi_file(self.input_file)
+            
+            # Update report with parsing results
+            self.report.source_version = parse_result['metadata']['source_version']
+            self.report.build_number = parse_result['metadata']['build_number']
+            self.report.transactions_count = parse_result['transactions_count']
+            
+            # Add warnings from parser
+            for warning in parse_result['warnings']:
+                self.report.add_warning(warning)
+            
+            # Check if this is an HTTP protocol
+            if not parse_result['is_http']:
+                self.report.add_warning(f"Non-HTTP protocol detected: {parse_result['protocol']}")
+                logger.warning("Skipping non-HTTP VSI file")
+                self.report.save(self.output_dir)
+                return 0  # Not an error, just skipped
+            
+            # Add parsing notes
+            self.report.add_note(f"Detected layout: {parse_result['layout']}")
+            self.report.add_note(f"Protocol: {parse_result['protocol'] or 'HTTP (assumed)'}")
+            self.report.add_note(f"Transactions found: {parse_result['transactions_count']}")
+            
+            # TODO: Implement remaining conversion logic
             # 2. Build Intermediate Representation
             # 3. Generate WireMock mappings
             # 4. Save mappings and report
             
-            logger.warning("Conversion logic not yet implemented - this is a placeholder")
-            self.report.add_note("Conversion logic not yet implemented")
+            logger.info("Parsing completed successfully - conversion logic to be implemented")
+            self.report.add_note("Parsing completed - conversion logic not yet implemented")
             
             # Save report
             self.report.save(self.output_dir)
