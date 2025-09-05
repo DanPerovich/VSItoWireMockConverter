@@ -64,12 +64,14 @@ class VSIConverter:
         latency_strategy: str = "uniform",
         soap_match_strategy: str = "both",
         max_file_size: int = 1024 * 1024,
+        output_format: str = "cloud",
     ):
         self.input_file = input_file
         self.output_dir = output_dir
         self.latency_strategy = latency_strategy
         self.soap_match_strategy = soap_match_strategy
         self.max_file_size = max_file_size
+        self.output_format = output_format
         self.report = ConversionReport(input_file)
 
         # Create output directories
@@ -151,7 +153,8 @@ class VSIConverter:
                 stubs,
                 self.report.to_dict(),
                 self.output_dir,
-                max_file_size=self.max_file_size
+                max_file_size=self.max_file_size,
+                output_format=self.output_format
             )
 
             # Update report with writer stats

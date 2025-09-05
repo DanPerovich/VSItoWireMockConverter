@@ -259,8 +259,56 @@ def write_wiremock_output(
     report_data: Dict[str, Any],
     output_dir: Path,
     max_file_size: int = 1024 * 1024,
+    output_format: str = "cloud",
 ) -> Dict[str, Any]:
     """Convenience function to write complete WireMock output."""
+    if output_format == "cloud":
+        return write_cloud_output(stubs, report_data, output_dir)
+    else:
+        return write_oss_output(stubs, report_data, output_dir, max_file_size)
+
+
+def write_cloud_output(
+    stubs: List[Dict[str, Any]],
+    report_data: Dict[str, Any],
+    output_dir: Path,
+) -> Dict[str, Any]:
+    """Write WireMock Cloud export format."""
+    from vsi2wm.wiremock_cloud import create_wiremock_cloud_export
+    
+    logger.info(f"Writing WireMock Cloud export format to {output_dir}")
+    
+    # Create Cloud export
+    result = create_wiremock_cloud_export(stubs, output_dir)
+    
+    # Write report
+    report_file = output_dir / "report.json"
+    with open(report_file, "w", encoding="utf-8") as f:
+        json.dump(report_data, f, indent=2, ensure_ascii=False)
+    
+    # Write index file
+    write_cloud_index_file(stubs, output_dir)
+    
+    # Write summary
+    write_cloud_summary(stubs, output_dir)
+    
+    return {
+        "total_stubs": len(stubs),
+        "files_written": 1,  # Only the export file
+        "large_files_split": 0,
+        "errors": [],
+        "output_format": "cloud",
+        "export_file": result["export_file"]
+    }
+
+
+def write_oss_output(
+    stubs: List[Dict[str, Any]],
+    report_data: Dict[str, Any],
+    output_dir: Path,
+    max_file_size: int = 1024 * 1024,
+) -> Dict[str, Any]:
+    """Write WireMock OSS format (legacy format)."""
     writer = WireMockWriter(output_dir, max_file_size)
     
     # Write stubs
@@ -276,3 +324,46 @@ def write_wiremock_output(
     writer.write_summary(stats)
     
     return stats
+
+
+def write_cloud_index_file(stubs: List[Dict[str, Any]], output_dir: Path) -> None:
+    """Write an index file for Cloud format."""
+    index_data = {
+        "format": "wiremock-cloud",
+        "total_stubs": len(stubs),
+        "stubs": []
+    }
+    
+    for i, stub in enumerate(stubs):
+        stub_info = {
+            "index": i,
+            "name": stub.get("name", f"stub_{i}"),
+            "method": stub.get("request", {}).get("method", "UNKNOWN"),
+            "url": stub.get("request", {}).get("urlPath") or stub.get("request", {}).get("urlPathPattern", "UNKNOWN"),
+            "status": stub.get("response", {}).get("status", 0),
+            "priority": stub.get("priority", 0),
+        }
+        index_data["stubs"].append(stub_info)
+    
+    index_file = output_dir / "stubs_index.json"
+    with open(index_file, "w", encoding="utf-8") as f:
+        json.dump(index_data, f, indent=2, ensure_ascii=False)
+    
+    logger.info(f"Cloud index file written to {index_file}")
+
+
+def write_cloud_summary(stubs: List[Dict[str, Any]], output_dir: Path) -> None:
+    """Write a human-readable summary file for Cloud format."""
+    summary_file = output_dir / "summary.txt"
+    
+    with open(summary_file, "w", encoding="utf-8") as f:
+        f.write("VSI to WireMock Cloud Export Summary\n")
+        f.write("=" * 40 + "\n\n")
+        f.write(f"Total stubs generated: {len(stubs)}\n")
+        f.write(f"Output format: WireMock Cloud\n")
+        f.write(f"Export file: wiremock-cloud-export.json\n")
+        
+        f.write(f"\nOutput directory: {output_dir}\n")
+        f.write(f"Export file: {output_dir / 'wiremock-cloud-export.json'}\n")
+    
+    logger.info(f"Cloud summary written to {summary_file}")

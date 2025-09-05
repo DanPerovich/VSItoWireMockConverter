@@ -5,7 +5,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from vsi2wm import __version__
 from vsi2wm.config import load_config, merge_config_with_args, create_default_config
@@ -32,6 +32,8 @@ Examples:
   vsi2wm convert --in service.vsi --out output
   vsi2wm convert --in service.vsi                    # Auto-generates 'service' output directory
   vsi2wm convert --in service.vsi --latency uniform --soap-match both --log-level debug
+  vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx  # Auto-upload to WireMock Cloud
+  vsi2wm convert --in service.vsi --oss-format      # Use legacy OSS format (hidden feature)
         """,
     )
 
@@ -79,15 +81,33 @@ Examples:
         type=int,
         help="Maximum file size before splitting to __files (overrides config)",
     )
+    # Hidden OSS format flag (undocumented feature)
     convert_parser.add_argument(
-        "--wiremock-cloud",
+        "--oss-format",
         action="store_true",
-        help="Create WireMock Cloud export format",
+        help=argparse.SUPPRESS,  # Hide from help output
     )
+    
+    # Auto-upload functionality
+    convert_parser.add_argument(
+        "--auto-upload",
+        action="store_true",
+        help="Automatically upload stubs to WireMock Cloud after conversion",
+    )
+    convert_parser.add_argument(
+        "--api-token",
+        help="WireMock Cloud API token for authentication",
+    )
+    convert_parser.add_argument(
+        "--project-name",
+        help="Project name for WireMock Cloud (default: derived from input filename)",
+    )
+    
+    # Legacy flags (kept for backward compatibility but deprecated)
     convert_parser.add_argument(
         "--upload-to-cloud",
         action="store_true",
-        help="Upload stubs directly to WireMock Cloud",
+        help="Upload stubs directly to WireMock Cloud (deprecated: use --auto-upload)",
     )
     convert_parser.add_argument(
         "--test-cloud-connection",
@@ -129,6 +149,40 @@ Examples:
     )
 
     return parser.parse_args(args)
+
+
+def _build_cloud_config(args: argparse.Namespace, config) -> Optional[Dict[str, Any]]:
+    """Build WireMock Cloud configuration from CLI arguments and config."""
+    cloud_config = {}
+    
+    # Get API token from CLI argument or config
+    api_token = getattr(args, 'api_token', None)
+    if not api_token and config.wiremock_cloud:
+        api_token = config.wiremock_cloud.get('api_key')
+    
+    if not api_token:
+        return None
+    
+    cloud_config['api_key'] = api_token
+    
+    # Get project ID from CLI argument or config
+    project_id = getattr(args, 'project_name', None)
+    if not project_id and config.wiremock_cloud:
+        project_id = config.wiremock_cloud.get('project_id')
+    
+    if not project_id:
+        # Auto-derive project name from input filename
+        project_id = args.input_file.stem.lower().replace('_', '-').replace(' ', '-')
+    
+    cloud_config['project_id'] = project_id
+    
+    # Get environment from config
+    if config.wiremock_cloud:
+        cloud_config['environment'] = config.wiremock_cloud.get('environment', 'default')
+    else:
+        cloud_config['environment'] = 'default'
+    
+    return cloud_config
 
 
 def validate_args(args: argparse.Namespace) -> None:
@@ -207,6 +261,7 @@ def main(args: Optional[list[str]] = None) -> int:
                 soap_match_strategy=getattr(parsed_args, 'soap_match', None),
                 log_level=getattr(parsed_args, 'log_level', None),
                 max_file_size=getattr(parsed_args, 'max_file_size', None),
+                auto_upload=getattr(parsed_args, 'auto_upload', None),
             )
 
         # Set up logging
@@ -234,12 +289,16 @@ def main(args: Optional[list[str]] = None) -> int:
             # Import and run converter
             from vsi2wm.core import VSIConverter
 
+            # Determine output format (Cloud is now default, OSS is hidden feature)
+            output_format = "oss" if getattr(parsed_args, 'oss_format', False) else "cloud"
+            
             converter = VSIConverter(
                 input_file=parsed_args.input_file,
                 output_dir=parsed_args.output_dir,
                 latency_strategy=config.latency_strategy,
                 soap_match_strategy=config.soap_match_strategy,
                 max_file_size=config.max_file_size,
+                output_format=output_format,
             )
 
             exit_code = converter.convert()
@@ -248,7 +307,7 @@ def main(args: Optional[list[str]] = None) -> int:
                 logger.info("Conversion completed successfully")
                 
                 # Handle WireMock Cloud features
-                if parsed_args.wiremock_cloud or parsed_args.upload_to_cloud or parsed_args.test_cloud_connection or parsed_args.analyze_scenario or parsed_args.optimize_scenario:
+                if parsed_args.auto_upload or parsed_args.upload_to_cloud or parsed_args.test_cloud_connection or parsed_args.analyze_scenario or parsed_args.optimize_scenario:
                     from vsi2wm.wiremock_cloud import (
                         create_wiremock_cloud_export,
                         upload_to_wiremock_cloud,
@@ -257,31 +316,36 @@ def main(args: Optional[list[str]] = None) -> int:
                     
                     # Load stubs for WireMock Cloud operations
                     stubs = []
-                    mappings_dir = parsed_args.output_dir / "mappings"
-                    for stub_file in mappings_dir.glob("*.json"):
-                        with open(stub_file, "r") as f:
-                            stubs.append(json.load(f))
+                    if output_format == "oss":
+                        # Load from mappings directory for OSS format
+                        mappings_dir = parsed_args.output_dir / "mappings"
+                        for stub_file in mappings_dir.glob("*.json"):
+                            with open(stub_file, "r") as f:
+                                stubs.append(json.load(f))
+                    else:
+                        # Load from Cloud export file
+                        cloud_export_file = parsed_args.output_dir / "wiremock-cloud-export.json"
+                        if cloud_export_file.exists():
+                            with open(cloud_export_file, "r") as f:
+                                export_data = json.load(f)
+                                stubs = export_data.get("stubs", [])
                     
                     # Test connection if requested
                     if parsed_args.test_cloud_connection:
-                        if config.wiremock_cloud:
+                        cloud_config = _build_cloud_config(parsed_args, config)
+                        if cloud_config:
                             logger.info("Testing WireMock Cloud connection...")
-                            result = test_wiremock_cloud_connection(config.wiremock_cloud)
+                            result = test_wiremock_cloud_connection(cloud_config)
                             logger.info(f"Connection test result: {result}")
                         else:
                             logger.warning("No WireMock Cloud configuration found for connection test")
                     
-                    # Create WireMock Cloud export
-                    if parsed_args.wiremock_cloud:
-                        logger.info("Creating WireMock Cloud export...")
-                        result = create_wiremock_cloud_export(stubs, parsed_args.output_dir, config.wiremock_cloud)
-                        logger.info(f"WireMock Cloud export created: {result}")
-                    
-                    # Upload to WireMock Cloud
-                    if parsed_args.upload_to_cloud:
-                        if config.wiremock_cloud:
+                    # Auto-upload to WireMock Cloud (new primary method)
+                    if parsed_args.auto_upload or parsed_args.upload_to_cloud:
+                        cloud_config = _build_cloud_config(parsed_args, config)
+                        if cloud_config:
                             logger.info("Uploading to WireMock Cloud...")
-                            result = upload_to_wiremock_cloud(stubs, config.wiremock_cloud)
+                            result = upload_to_wiremock_cloud(stubs, cloud_config)
                             logger.info(f"Upload result: {result}")
                         else:
                             logger.error("No WireMock Cloud configuration found for upload")

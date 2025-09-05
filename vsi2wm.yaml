@@ -1,6 +1,12 @@
 # VSI to WireMock Converter Configuration
 # This file contains configuration options for the VSI to WireMock converter
 
+# Output format: cloud (default) or oss (hidden feature)
+output_format: cloud
+
+# Auto-upload to WireMock Cloud (default: false)
+auto_upload: false
+
 # Latency strategy: uniform (default) or fixed:<ms>
 latency_strategy: uniform
 

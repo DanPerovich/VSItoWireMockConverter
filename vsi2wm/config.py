@@ -12,6 +12,13 @@ from vsi2wm.exceptions import CLIError
 class ConversionConfig:
     """Configuration for VSI to WireMock conversion."""
     
+    # Output format settings
+    output_format: str = "cloud"  # Default to Cloud format
+    oss_format: bool = False  # Hidden OSS format feature
+    
+    # Auto-upload settings
+    auto_upload: bool = False
+    
     # Latency strategy
     latency_strategy: str = "uniform"
     
@@ -58,6 +65,9 @@ class ConversionConfig:
     def to_dict(self) -> Dict[str, Any]:
         """Convert config to dictionary."""
         return {
+            "output_format": self.output_format,
+            "oss_format": self.oss_format,
+            "auto_upload": self.auto_upload,
             "latency_strategy": self.latency_strategy,
             "soap_match_strategy": self.soap_match_strategy,
             "max_file_size": self.max_file_size,
@@ -114,6 +124,12 @@ def create_default_config(config_file: Path) -> None:
         with open(config_file, "w") as f:
             f.write("""# VSI to WireMock Converter Configuration
 # This file contains configuration options for the VSI to WireMock converter
+
+# Output format: cloud (default) or oss (hidden feature)
+output_format: cloud
+
+# Auto-upload to WireMock Cloud (default: false)
+auto_upload: false
 
 # Latency strategy: uniform (default) or fixed:<ms>
 latency_strategy: uniform
