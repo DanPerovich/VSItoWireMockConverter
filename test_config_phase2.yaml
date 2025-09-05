@@ -1,0 +1,12 @@
+# Test configuration for Phase 2
+output_format: oss
+auto_upload: true
+latency_strategy: fixed:100
+soap_match_strategy: soapAction
+max_file_size: 2048000
+log_level: debug
+
+wiremock_cloud:
+  api_key: wm_test_key
+  project_id: test-project
+  environment: test-env

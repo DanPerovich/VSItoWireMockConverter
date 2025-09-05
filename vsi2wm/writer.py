@@ -278,8 +278,17 @@ def write_cloud_output(
     
     logger.info(f"Writing WireMock Cloud export format to {output_dir}")
     
-    # Create Cloud export
-    result = create_wiremock_cloud_export(stubs, output_dir)
+    # Extract source metadata from report data
+    source_metadata = {
+        "source_file": report_data.get("source_file"),
+        "source_version": report_data.get("source_version"),
+        "build_number": report_data.get("build_number"),
+        "transactions_count": report_data.get("counts", {}).get("transactions"),
+        "variants_count": report_data.get("counts", {}).get("variants"),
+    }
+    
+    # Create Cloud export with enhanced metadata
+    result = create_wiremock_cloud_export(stubs, output_dir, source_metadata=source_metadata)
     
     # Write report
     report_file = output_dir / "report.json"
@@ -298,7 +307,8 @@ def write_cloud_output(
         "large_files_split": 0,
         "errors": [],
         "output_format": "cloud",
-        "export_file": result["export_file"]
+        "export_file": result["export_file"],
+        "enhanced_version": result.get("enhanced_version", "1.0"),
     }
 
 
@@ -327,10 +337,12 @@ def write_oss_output(
 
 
 def write_cloud_index_file(stubs: List[Dict[str, Any]], output_dir: Path) -> None:
-    """Write an index file for Cloud format."""
+    """Write an enhanced index file for Cloud format."""
     index_data = {
         "format": "wiremock-cloud",
+        "version": "2.0",
         "total_stubs": len(stubs),
+        "generated_timestamp": _get_current_timestamp(),
         "stubs": []
     }
     
@@ -342,6 +354,8 @@ def write_cloud_index_file(stubs: List[Dict[str, Any]], output_dir: Path) -> Non
             "url": stub.get("request", {}).get("urlPath") or stub.get("request", {}).get("urlPathPattern", "UNKNOWN"),
             "status": stub.get("response", {}).get("status", 0),
             "priority": stub.get("priority", 0),
+            "content_type": stub.get("response", {}).get("headers", {}).get("Content-Type", "unknown"),
+            "has_metadata": bool(stub.get("metadata")),
         }
         index_data["stubs"].append(stub_info)
     
@@ -349,21 +363,44 @@ def write_cloud_index_file(stubs: List[Dict[str, Any]], output_dir: Path) -> Non
     with open(index_file, "w", encoding="utf-8") as f:
         json.dump(index_data, f, indent=2, ensure_ascii=False)
     
-    logger.info(f"Cloud index file written to {index_file}")
+    logger.info(f"Enhanced Cloud index file written to {index_file}")
 
 
 def write_cloud_summary(stubs: List[Dict[str, Any]], output_dir: Path) -> None:
-    """Write a human-readable summary file for Cloud format."""
+    """Write an enhanced human-readable summary file for Cloud format."""
     summary_file = output_dir / "summary.txt"
     
+    # Count content types
+    content_types = {}
+    for stub in stubs:
+        content_type = stub.get("response", {}).get("headers", {}).get("Content-Type", "unknown")
+        content_types[content_type] = content_types.get(content_type, 0) + 1
+    
     with open(summary_file, "w", encoding="utf-8") as f:
-        f.write("VSI to WireMock Cloud Export Summary\n")
-        f.write("=" * 40 + "\n\n")
+        f.write("VSI to WireMock Cloud Export Summary (Enhanced)\n")
+        f.write("=" * 50 + "\n\n")
         f.write(f"Total stubs generated: {len(stubs)}\n")
-        f.write(f"Output format: WireMock Cloud\n")
+        f.write(f"Output format: WireMock Cloud (Enhanced v2.0)\n")
         f.write(f"Export file: wiremock-cloud-export.json\n")
+        f.write(f"Generated timestamp: {_get_current_timestamp()}\n\n")
+        
+        f.write("Content Type Distribution:\n")
+        for content_type, count in content_types.items():
+            f.write(f"  - {content_type}: {count} stubs\n")
+        
+        f.write(f"\nFeatures Enabled:\n")
+        f.write(f"  - Enhanced naming strategy\n")
+        f.write(f"  - Automatic Content-Type detection\n")
+        f.write(f"  - Metadata preservation\n")
+        f.write(f"  - Timestamp tracking\n")
         
         f.write(f"\nOutput directory: {output_dir}\n")
         f.write(f"Export file: {output_dir / 'wiremock-cloud-export.json'}\n")
     
-    logger.info(f"Cloud summary written to {summary_file}")
+    logger.info(f"Enhanced Cloud summary written to {summary_file}")
+
+
+def _get_current_timestamp() -> str:
+    """Get current timestamp in ISO format."""
+    from datetime import datetime
+    return datetime.utcnow().isoformat() + "Z"

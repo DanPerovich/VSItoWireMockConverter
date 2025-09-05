@@ -290,7 +290,12 @@ def main(args: Optional[list[str]] = None) -> int:
             from vsi2wm.core import VSIConverter
 
             # Determine output format (Cloud is now default, OSS is hidden feature)
-            output_format = "oss" if getattr(parsed_args, 'oss_format', False) else "cloud"
+            if getattr(parsed_args, 'oss_format', False):
+                output_format = "oss"
+            elif config.output_format == "oss":
+                output_format = "oss"
+            else:
+                output_format = "cloud"
             
             converter = VSIConverter(
                 input_file=parsed_args.input_file,
