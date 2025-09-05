@@ -24,6 +24,7 @@ class TestGoldenFiles:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -131,6 +132,7 @@ class TestGoldenFiles:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -178,6 +180,7 @@ class TestGoldenFiles:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -218,6 +221,7 @@ class TestGoldenFiles:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -253,6 +257,7 @@ class TestGoldenFiles:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -302,6 +307,7 @@ class TestReportSnapshots:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()
@@ -335,6 +341,7 @@ class TestReportSnapshots:
                 output_dir=output_dir,
                 latency_strategy="uniform",
                 soap_match_strategy="both",
+                output_format="oss",  # Use OSS format for golden file tests
             )
             
             exit_code = converter.convert()

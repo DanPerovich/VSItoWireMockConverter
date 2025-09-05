@@ -333,7 +333,7 @@ class TestWriteWireMockOutput:
                 "counts": {"stubs_generated": 1}
             }
             
-            stats = write_wiremock_output(stubs, report_data, Path(temp_dir))
+            stats = write_wiremock_output(stubs, report_data, Path(temp_dir), output_format="oss")
             
             assert stats["total_stubs"] == 1
             assert stats["files_written"] == 1
@@ -360,7 +360,7 @@ class TestWriteWireMockOutput:
             report_data = {"source_file": "test.vsi", "counts": {"stubs_generated": 1}}
             
             # Use small max file size to trigger splitting
-            stats = write_wiremock_output(stubs, report_data, Path(temp_dir), max_file_size=100)
+            stats = write_wiremock_output(stubs, report_data, Path(temp_dir), max_file_size=100, output_format="oss")
             
             assert stats["large_files_split"] == 1
             assert (Path(temp_dir) / "__files" / "POST__large_0_body.bin").exists()
