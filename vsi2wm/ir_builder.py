@@ -19,6 +19,7 @@ from vsi2wm.ir import (
     parse_latency,
     parse_weight,
 )
+from vsi2wm.helper_converter import convert_body_helpers
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +154,15 @@ class IRBuilder:
                     if body_content:
                         body_type = detect_body_type(body_content)
                         body = RequestBody(type=body_type, content=body_content)
+                        
+                        # Convert CA LISA helpers to WireMock Handlebars helpers
+                        body = convert_body_helpers(body)
+                        
+                        # Detect SOAP services and default to POST
+                        if body_type == "xml" and "soapenv:Envelope" in body.content:
+                            if method == "GET":  # Only change if still default
+                                method = "POST"
+                                logger.debug(f"Detected SOAP service, changed method to POST")
                 break
         
         logger.debug(f"Built request: {method} {path}")
@@ -224,6 +234,10 @@ class IRBuilder:
                     if body_content:
                         body_type = detect_body_type(body_content)
                         body = ResponseBody(type=body_type, content=body_content)
+                        
+                        # Convert CA LISA helpers to WireMock Handlebars helpers
+                        body = convert_body_helpers(body)
+                        
                         logger.debug(f"Found response body: type={body_type}, content length={len(body_content)}")
                 break
         

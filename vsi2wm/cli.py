@@ -99,8 +99,9 @@ Examples:
         help="WireMock Cloud API token for authentication",
     )
     convert_parser.add_argument(
-        "--project-name",
-        help="Project name for WireMock Cloud (default: derived from input filename)",
+        "--no-create-mockapi",
+        action="store_true",
+        help="Only use existing MockAPI with same name, fail if not found (default: always create new MockAPI)",
     )
     
     # Legacy flags (kept for backward compatibility but deprecated)
@@ -165,9 +166,9 @@ def _build_cloud_config(args: argparse.Namespace, config) -> Optional[Dict[str, 
     
     cloud_config['api_key'] = api_token
     
-    # Get project ID from CLI argument or config
-    project_id = getattr(args, 'project_name', None)
-    if not project_id and config.wiremock_cloud:
+    # Get project ID from config or auto-derive
+    project_id = None
+    if config.wiremock_cloud:
         project_id = config.wiremock_cloud.get('project_id')
     
     if not project_id:
@@ -347,14 +348,67 @@ def main(args: Optional[list[str]] = None) -> int:
                     
                     # Auto-upload to WireMock Cloud (new primary method)
                     if parsed_args.auto_upload or parsed_args.upload_to_cloud:
-                        cloud_config = _build_cloud_config(parsed_args, config)
-                        if cloud_config:
-                            logger.info("Uploading to WireMock Cloud...")
-                            result = upload_to_wiremock_cloud(stubs, cloud_config)
-                            logger.info(f"Upload result: {result}")
-                        else:
-                            logger.error("No WireMock Cloud configuration found for upload")
+                        logger.info("Uploading to WireMock Cloud...")
+                        
+                        # Build cloud configuration using new Phase 3 functionality
+                        from vsi2wm.wiremock_cloud import create_cloud_config_from_sources
+                        
+                        cli_args = {
+                            "api_token": getattr(parsed_args, 'api_token', None),
+                        }
+                        config_data = {}
+                        if hasattr(config, 'to_dict'):
+                            try:
+                                config_data = config.to_dict() or {}
+                            except Exception:
+                                config_data = {}
+                        
+                        
+                        cloud_config = create_cloud_config_from_sources(
+                            cli_args=cli_args,
+                            config_data=config_data,
+                            source_file=parsed_args.input_file
+                        )
+                        
+                        if not cloud_config:
+                            logger.error("WireMock Cloud configuration incomplete")
+                            logger.error("Please provide --api-token, or configure in vsi2wm.yaml")
+                            logger.error("You can also set WIREMOCK_CLOUD_API_TOKEN environment variable")
                             return 1
+                        
+                        # Use new AutoUploadManager for Phase 3 functionality
+                        from vsi2wm.wiremock_cloud import AutoUploadManager
+                        
+                        upload_manager = AutoUploadManager(cloud_config)
+                        
+                        # Validate prerequisites
+                        validation = upload_manager.validate_upload_prerequisites()
+                        if not validation["valid"]:
+                            logger.error("Upload validation failed:")
+                            for error in validation["errors"]:
+                                logger.error(f"  - {error}")
+                            return 1
+                        
+                        # Upload stubs with automatic MockAPI management
+                        upload_result = upload_manager.upload_stubs_to_mockapi(
+                            stubs=stubs,
+                            source_file=parsed_args.input_file,
+                            source_metadata={
+                                "source_version": converter.report.source_version,
+                                "build_number": converter.report.build_number,
+                            },
+                            mockapi_name=None,  # Auto-generate from source file
+                            create_mockapi=not parsed_args.no_create_mockapi
+                        )
+                        
+                if upload_result["success"]:
+                    logger.info(f"Successfully uploaded {upload_result['uploaded_stubs']} stubs to WireMock Cloud")
+                    mock_api_name = upload_result['mock_api'].get('name') or upload_result['mock_api'].get('mockApi', {}).get('name', 'Unknown')
+                    logger.info(f"MockAPI: {mock_api_name} (ID: {upload_result['mock_api_id']})")
+                    logger.info(f"Environment: {cloud_config['environment']}")
+                else:
+                    logger.error(f"Upload failed: {upload_result['error']}")
+                    return 1
                     
                     # Handle scenario analysis
                     if parsed_args.analyze_scenario or parsed_args.optimize_scenario:

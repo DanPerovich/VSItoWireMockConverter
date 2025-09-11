@@ -1,0 +1,19 @@
+{
+  "source_file": "vsi_samples/xml/ZelleFIS.vsi",
+  "source_version": "10.5.0",
+  "build_number": "10.5.0.510",
+  "counts": {
+    "transactions": 4,
+    "variants": 6,
+    "stubs_generated": 6
+  },
+  "warnings": [],
+  "notes": [
+    "Detected layout: model_based",
+    "Protocol: HTTP (assumed)",
+    "Transactions found: 4",
+    "Built IR with 4 transactions",
+    "Total response variants: 6",
+    "Generated 6 WireMock stubs"
+  ]
+}

@@ -1,0 +1,19 @@
+VSI to WireMock Cloud Export Summary (Enhanced)
+==================================================
+
+Total stubs generated: 6
+Output format: WireMock Cloud (Enhanced v2.0)
+Export file: wiremock-cloud-export.json
+Generated timestamp: 2025-09-11T20:58:56.962812Z
+
+Content Type Distribution:
+  - application/xml: 6 stubs
+
+Features Enabled:
+  - Enhanced naming strategy
+  - Automatic Content-Type detection
+  - Metadata preservation
+  - Timestamp tracking
+
+Output directory: ZelleFIS
+Export file: ZelleFIS/wiremock-cloud-export.json
