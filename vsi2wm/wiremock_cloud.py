@@ -647,6 +647,83 @@ class AutoUploadManager:
                 "uploaded_stubs": 0,
             }
     
+    def upload_stubs_to_existing_mockapi(
+        self,
+        stubs: List[Dict[str, Any]],
+        source_file: Path,
+        source_metadata: Optional[Dict[str, Any]] = None,
+        mockapi_id: str = None
+    ) -> Dict[str, Any]:
+        """Upload stubs to existing MockAPI by ID and optionally update MockAPI metadata."""
+        try:
+            logger.info(f"Uploading stubs to existing MockAPI: {mockapi_id}")
+            
+            # Get existing MockAPI to verify it exists
+            try:
+                existing_mockapi = self.client.get_mock_api(mockapi_id)
+                logger.info(f"Found existing MockAPI: {existing_mockapi.get('name', 'Unknown')}")
+            except Exception as e:
+                raise ConversionError(f"MockAPI {mockapi_id} not found or inaccessible: {e}", exit_code=1)
+            
+            # Extract MockAPI metadata for potential update
+            mockapi_metadata = extract_mockapi_metadata(source_file, source_metadata, self.client)
+            
+            # Update MockAPI metadata if it has changed
+            should_update_metadata = False
+            update_payload = {}
+            
+            if mockapi_metadata.get("name") != existing_mockapi.get("name"):
+                update_payload["name"] = mockapi_metadata["name"]
+                should_update_metadata = True
+                
+            if mockapi_metadata.get("description") != existing_mockapi.get("description"):
+                update_payload["description"] = mockapi_metadata["description"]
+                should_update_metadata = True
+                
+            if mockapi_metadata.get("tags") != existing_mockapi.get("tags"):
+                update_payload["tags"] = mockapi_metadata["tags"]
+                should_update_metadata = True
+            
+            if should_update_metadata:
+                logger.info(f"Updating MockAPI metadata: {update_payload}")
+                updated_mockapi = self.client.update_mock_api(
+                    mockapi_id,
+                    name=update_payload.get("name"),
+                    description=update_payload.get("description"),
+                    tags=update_payload.get("tags")
+                )
+                logger.info("MockAPI metadata updated successfully")
+            else:
+                updated_mockapi = existing_mockapi
+                logger.info("MockAPI metadata unchanged, skipping update")
+            
+            # Convert stubs to Cloud format
+            cloud_stubs = convert_to_wiremock_cloud_format(stubs, source_metadata)
+            
+            # Upload stubs to MockAPI
+            logger.info(f"Uploading {len(cloud_stubs)} stubs to MockAPI {mockapi_id}")
+            upload_result = self._upload_stubs_to_mockapi(mockapi_id, cloud_stubs)
+            
+            return {
+                "success": True,
+                "mock_api": updated_mockapi,
+                "mock_api_id": mockapi_id,
+                "uploaded_stubs": len(cloud_stubs),
+                "upload_result": upload_result,
+                "mockapi_metadata": mockapi_metadata,
+                "metadata_updated": should_update_metadata,
+            }
+            
+        except Exception as e:
+            logger.error(f"Auto-upload to existing MockAPI failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "mock_api": None,
+                "mock_api_id": mockapi_id,
+                "uploaded_stubs": 0,
+            }
+    
     def _upload_stubs_to_mockapi(self, mock_api_id: str, cloud_stubs: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Upload stubs to specific MockAPI."""
         url = f"{self.client.base_url}/v1/mock-apis/{mock_api_id}/mappings/import"

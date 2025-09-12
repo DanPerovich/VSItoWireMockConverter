@@ -21,7 +21,7 @@ poetry run vsi2wm --help
 ### Basic Usage
 
 ```bash
-# Convert a VSI file to WireMock mappings (auto-generates output directory)
+# Convert a VSI file to WireMock Cloud export (default behavior)
 poetry run vsi2wm convert --in service.vsi
 
 # Convert with custom output directory
@@ -35,21 +35,47 @@ poetry run vsi2wm convert \
   --soap-match both \
   --log-level info \
   --max-file-size 1048576
+
+# Auto-upload to WireMock Cloud
+poetry run vsi2wm convert \
+  --in service.vsi \
+  --auto-upload \
+  --api-token wm_xxx
+
+# Update existing MockAPI
+poetry run vsi2wm convert \
+  --in service.vsi \
+  --auto-upload \
+  --api-token wm_xxx \
+  --update-mockapi \
+  --mockapi-id abc123
+
+# Use legacy OSS format (hidden feature)
+poetry run vsi2wm convert --in service.vsi --oss-format
 ```
 
 ### Example Output
 
+**WireMock Cloud Export (Default):**
 ```
 output/
-├── mappings/                    # WireMock stub mappings (*.json)
+├── wiremock-cloud-export.json  # WireMock Cloud import format
+├── report.json                 # Conversion report with statistics
+└── summary.txt                 # Human-readable summary
+```
+
+**WireMock OSS Format (Legacy):**
+```
+output/
+├── mappings/                   # WireMock stub mappings (*.json)
 │   ├── GET__accounts_0.json
 │   ├── POST__users_1.json
 │   └── ...
-├── __files/                     # Large response bodies (if split)
+├── __files/                    # Large response bodies (if split)
 │   └── GET__accounts_0_body.json
-├── report.json                  # Conversion report with statistics
-├── stubs_index.json            # Index of all generated stubs
-└── summary.txt                 # Human-readable summary
+├── report.json                 # Conversion report with statistics
+├── stubs_index.json           # Index of all generated stubs
+└── summary.txt                # Human-readable summary
 ```
 
 ## 📋 Features
@@ -65,8 +91,10 @@ output/
 - **Selection logic** (matchScript)
 
 ### ✅ WireMock Compatibility
-- **WireMock Cloud** export format
-- **WireMock OSS** compatibility
+- **WireMock Cloud** export format (default)
+- **WireMock OSS** compatibility (legacy format)
+- **Auto-upload to WireMock Cloud** with API token authentication
+- **MockAPI management** (create, update, find existing)
 - **Response templates** for dynamic responses
 - **Priority-based stub ordering**
 - **Metadata preservation** from DevTest
@@ -87,6 +115,16 @@ output/
   - `both` (default): Match both header and body
 - `--max-file-size <bytes>`: Maximum file size before splitting (default: 1048576)
 - `--log-level <level>`: Logging level (debug, info, warn, error)
+
+### WireMock Cloud Arguments
+- `--auto-upload`: Automatically upload stubs to WireMock Cloud after conversion
+- `--api-token <token>`: WireMock Cloud API token for authentication
+- `--no-create-mockapi`: Only use existing MockAPI with same name, fail if not found
+- `--update-mockapi`: Update existing MockAPI instead of creating new one (requires --mockapi-id)
+- `--mockapi-id <id>`: Specific MockAPI ID to use for upload (required with --update-mockapi)
+
+### Hidden Arguments
+- `--oss-format`: Generate WireMock OSS project folder (legacy format)
 
 ### Exit Codes
 - `0`: Success
@@ -261,6 +299,43 @@ output/
   }
 }
 ```
+
+## ☁️ WireMock Cloud Integration
+
+### Auto-Upload to WireMock Cloud
+
+The tool now supports direct integration with WireMock Cloud, making it easy to convert VSI files and immediately deploy them as MockAPIs.
+
+#### Setup
+1. **Get your API token** from WireMock Cloud
+2. **Set environment variable** (optional):
+   ```bash
+   export WIREMOCK_CLOUD_API_TOKEN=wm_xxx
+   ```
+
+#### Usage Examples
+
+**Create new MockAPI:**
+```bash
+poetry run vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx
+```
+
+**Update existing MockAPI:**
+```bash
+poetry run vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --update-mockapi --mockapi-id abc123
+```
+
+**Use existing MockAPI by name:**
+```bash
+poetry run vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --no-create-mockapi
+```
+
+#### MockAPI Management
+
+- **Automatic naming**: MockAPI names are derived from VSI filename
+- **Metadata extraction**: Description and tags are extracted from VSI content
+- **Conflict resolution**: Handles naming conflicts automatically
+- **Metadata updates**: Updates MockAPI metadata when uploading to existing MockAPIs
 
 ## 🔧 Examples
 
@@ -502,11 +577,24 @@ poetry run pytest --cov=vsi2wm --cov-report=html
 
 ## 🔄 Migration Guide
 
-### From DevTest to WireMock
+### From DevTest to WireMock Cloud
 
 1. **Export VSI files** from DevTest Studio
-2. **Convert to WireMock** using this tool
-3. **Import stubs** into WireMock Cloud or OSS
+2. **Get WireMock Cloud API token** from your account
+3. **Convert and auto-upload** using this tool:
+   ```bash
+   poetry run vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx
+   ```
+4. **Verify functionality** with your test suite
+
+### From DevTest to WireMock OSS
+
+1. **Export VSI files** from DevTest Studio
+2. **Convert to OSS format** using this tool:
+   ```bash
+   poetry run vsi2wm convert --in service.vsi --oss-format
+   ```
+3. **Import stubs** into WireMock OSS
 4. **Verify functionality** with your test suite
 
 ### Best Practices

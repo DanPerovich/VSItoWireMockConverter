@@ -33,6 +33,8 @@ Examples:
   vsi2wm convert --in service.vsi                    # Auto-generates 'service' output directory
   vsi2wm convert --in service.vsi --latency uniform --soap-match both --log-level debug
   vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx  # Auto-upload to WireMock Cloud
+  vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --update-mockapi --mockapi-id abc123  # Update existing MockAPI
+  vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --no-create-mockapi  # Use existing MockAPI by name
   vsi2wm convert --in service.vsi --oss-format      # Use legacy OSS format (hidden feature)
         """,
     )
@@ -102,6 +104,15 @@ Examples:
         "--no-create-mockapi",
         action="store_true",
         help="Only use existing MockAPI with same name, fail if not found (default: always create new MockAPI)",
+    )
+    convert_parser.add_argument(
+        "--update-mockapi",
+        action="store_true",
+        help="Update existing MockAPI instead of creating new one (requires --mockapi-id)",
+    )
+    convert_parser.add_argument(
+        "--mockapi-id",
+        help="Specific MockAPI ID to use for upload (required with --update-mockapi)",
     )
     
     # Legacy flags (kept for backward compatibility but deprecated)
@@ -203,7 +214,7 @@ def validate_args(args: argparse.Namespace) -> None:
             )
 
         # Validate output directory
-        if args.output_dir.exists() and not args.output_dir.is_dir():
+        if args.output_dir and args.output_dir.exists() and not args.output_dir.is_dir():
             raise CLIError(
                 f"Output path exists but is not a directory: {args.output_dir}", 
                 exit_code=2
@@ -218,13 +229,37 @@ def validate_args(args: argparse.Namespace) -> None:
                 )
 
         # Create output directory if it doesn't exist
-        try:
-            args.output_dir.mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            raise CLIError(
-                f"Permission denied creating output directory: {args.output_dir}", 
-                exit_code=3
-            )
+        if args.output_dir:
+            try:
+                args.output_dir.mkdir(parents=True, exist_ok=True)
+            except PermissionError:
+                raise CLIError(
+                    f"Permission denied creating output directory: {args.output_dir}", 
+                    exit_code=3
+                )
+
+        # Validate MockAPI management arguments
+        if hasattr(args, 'update_mockapi') and args.update_mockapi:
+            if not hasattr(args, 'mockapi_id') or not args.mockapi_id:
+                raise CLIError(
+                    "--update-mockapi requires --mockapi-id to be specified", 
+                    exit_code=2
+                )
+            
+            # --update-mockapi is mutually exclusive with --no-create-mockapi
+            if hasattr(args, 'no_create_mockapi') and args.no_create_mockapi:
+                raise CLIError(
+                    "--update-mockapi and --no-create-mockapi are mutually exclusive", 
+                    exit_code=2
+                )
+        
+        # --mockapi-id requires --update-mockapi
+        if hasattr(args, 'mockapi_id') and args.mockapi_id:
+            if not hasattr(args, 'update_mockapi') or not args.update_mockapi:
+                raise CLIError(
+                    "--mockapi-id requires --update-mockapi to be specified", 
+                    exit_code=2
+                )
 
 
 def main(args: Optional[list[str]] = None) -> int:
@@ -389,17 +424,30 @@ def main(args: Optional[list[str]] = None) -> int:
                                 logger.error(f"  - {error}")
                             return 1
                         
-                        # Upload stubs with automatic MockAPI management
-                        upload_result = upload_manager.upload_stubs_to_mockapi(
-                            stubs=stubs,
-                            source_file=parsed_args.input_file,
-                            source_metadata={
-                                "source_version": converter.report.source_version,
-                                "build_number": converter.report.build_number,
-                            },
-                            mockapi_name=None,  # Auto-generate from source file
-                            create_mockapi=not parsed_args.no_create_mockapi
-                        )
+                        # Determine MockAPI management mode
+                        if hasattr(parsed_args, 'update_mockapi') and parsed_args.update_mockapi:
+                            # Update mode: use specific MockAPI ID
+                            upload_result = upload_manager.upload_stubs_to_existing_mockapi(
+                                stubs=stubs,
+                                source_file=parsed_args.input_file,
+                                source_metadata={
+                                    "source_version": converter.report.source_version,
+                                    "build_number": converter.report.build_number,
+                                },
+                                mockapi_id=parsed_args.mockapi_id
+                            )
+                        else:
+                            # Create or find mode: use existing logic
+                            upload_result = upload_manager.upload_stubs_to_mockapi(
+                                stubs=stubs,
+                                source_file=parsed_args.input_file,
+                                source_metadata={
+                                    "source_version": converter.report.source_version,
+                                    "build_number": converter.report.build_number,
+                                },
+                                mockapi_name=None,  # Auto-generate from source file
+                                create_mockapi=not parsed_args.no_create_mockapi
+                            )
                         
                 if upload_result["success"]:
                     logger.info(f"Successfully uploaded {upload_result['uploaded_stubs']} stubs to WireMock Cloud")
