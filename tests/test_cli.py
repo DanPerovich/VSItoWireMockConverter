@@ -111,6 +111,9 @@ class TestCLI:
             args.input_file = vsi_file
             args.output_dir = Path(tmp_dir) / "output"
             args.max_file_size = 1024 * 1024
+            args.update_mockapi = False
+            args.no_create_mockapi = False
+            args.mockapi_id = None
             
             # Should not raise any exception
             validate_args(args)

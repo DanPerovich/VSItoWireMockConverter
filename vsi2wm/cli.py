@@ -449,14 +449,14 @@ def main(args: Optional[list[str]] = None) -> int:
                                 create_mockapi=not parsed_args.no_create_mockapi
                             )
                         
-                if upload_result["success"]:
-                    logger.info(f"Successfully uploaded {upload_result['uploaded_stubs']} stubs to WireMock Cloud")
-                    mock_api_name = upload_result['mock_api'].get('name') or upload_result['mock_api'].get('mockApi', {}).get('name', 'Unknown')
-                    logger.info(f"MockAPI: {mock_api_name} (ID: {upload_result['mock_api_id']})")
-                    logger.info(f"Environment: {cloud_config['environment']}")
-                else:
-                    logger.error(f"Upload failed: {upload_result['error']}")
-                    return 1
+                        if upload_result["success"]:
+                            logger.info(f"Successfully uploaded {upload_result['uploaded_stubs']} stubs to WireMock Cloud")
+                            mock_api_name = upload_result['mock_api'].get('name') or upload_result['mock_api'].get('mockApi', {}).get('name', 'Unknown')
+                            logger.info(f"MockAPI: {mock_api_name} (ID: {upload_result['mock_api_id']})")
+                            logger.info(f"Environment: {cloud_config['environment']}")
+                        else:
+                            logger.error(f"Upload failed: {upload_result['error']}")
+                            return 1
                     
                     # Handle scenario analysis
                     if parsed_args.analyze_scenario or parsed_args.optimize_scenario:

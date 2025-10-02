@@ -151,8 +151,8 @@ class TestCloudExportGoldenFiles:
             
             # Check naming convention
             assert stubs_data[0]["name"] == "GET__users"
-            assert stubs_data[1]["name"] == "POST__users_{id}_1"
-            assert stubs_data[2]["name"] == "DELETE__users_2"
+            assert stubs_data[1]["name"] == "POST__users_{id}"  # Uses metadata transaction ID
+            assert stubs_data[2]["name"] == "DELETE__users_2"  # Uses fallback naming with index
 
     def test_cloud_export_content_type_headers(self):
         """Test Cloud export automatic Content-Type headers."""

@@ -150,11 +150,20 @@ class WireMockMapper:
         # Add headers
         if variant.headers:
             response["headers"] = variant.headers
+        else:
+            response["headers"] = {}
         
         # Add body
         if variant.body:
             if variant.body.type == "json":
-                response["jsonBody"] = json.loads(variant.body.content)
+                # Check if content contains Handlebars helpers
+                if "{{" in variant.body.content and "}}" in variant.body.content:
+                    # Use body instead of jsonBody for templates
+                    response["body"] = variant.body.content
+                    response["headers"]["Content-Type"] = "application/json"
+                else:
+                    # Parse as JSON for static content
+                    response["jsonBody"] = json.loads(variant.body.content)
             elif variant.body.type == "xml":
                 response["body"] = variant.body.content
             else:

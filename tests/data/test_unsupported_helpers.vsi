@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<serviceImage>
+    <t id="1">
+        <rq>
+            <method>POST</method>
+            <url>/api/users</url>
+            <headers>
+                <header name="Authorization">Bearer {{=doRandomString(20)}}</header>
+                <header name="X-Request-ID">{{=doRandomNumber(1000,9999)}}</header>
+            </headers>
+            <bd>{"name": "{{=doRandomString(10)}}", "age": {{=doRandomNumber(18,65)}}}</bd>
+        </rq>
+        <rs>
+            <rp id="1">
+                <status>201</status>
+                <headers>
+                    <header name="Location">/api/users/{{=doRandomNumber(1,1000)}}</header>
+                </headers>
+                <bd>{"id": {{=doRandomNumber(1,1000)}}, "name": "{{=doRandomString(10)}}", "created": "{{=doDateDeltaFromCurrent(\"yyyy-MM-dd\",\"+0D\")}}"}</bd>
+            </rp>
+        </rs>
+    </t>
+    <t id="2">
+        <rq>
+            <method>GET</method>
+            <url>/api/users/{{=doRandomNumber(1,1000)}}</url>
+        </rq>
+        <rs>
+            <rp id="2">
+                <status>200</status>
+                <bd>{"id": {{=doRandomNumber(1,1000)}}, "name": "{{=doRandomString(10)}}", "email": "{{=doRandomEmail()}}"}</bd>
+            </rp>
+        </rs>
+    </t>
+</serviceImage>

@@ -198,8 +198,8 @@ def _generate_cloud_stub_name(stub: Dict[str, Any], index: int) -> str:
     url_path = request.get("urlPath") or request.get("urlPathPattern", "")
     
     if url_path:
-        # Clean up URL path for naming
-        clean_path = url_path.replace("/", "_").replace("{", "").replace("}", "").replace("*", "wildcard")
+        # Clean up URL path for naming - preserve curly braces for path parameters
+        clean_path = url_path.replace("/", "_").replace("*", "wildcard")
         return f"{method}_{clean_path}_{index}"
     
     return f"stub_{index}"
@@ -439,6 +439,9 @@ def _generate_mockapi_name(source_file: Path) -> str:
     # Remove any non-alphanumeric characters except hyphens
     import re
     name = re.sub(r'[^a-z0-9\-]', '', name)
+    
+    # Collapse multiple consecutive hyphens into single hyphens
+    name = re.sub(r'-+', '-', name)
     
     # Ensure it starts and ends with alphanumeric
     name = re.sub(r'^\-+|\-+$', '', name)

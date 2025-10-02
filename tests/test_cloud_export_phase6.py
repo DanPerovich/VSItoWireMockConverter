@@ -408,15 +408,20 @@ class TestOSSFormatGeneration:
 class TestFormatSelectionIntegration:
     """Test format selection integration in VSIConverter."""
 
-    @patch('vsi2wm.parser.VSIParser')
+    @patch('vsi2wm.parser.parse_vsi_file')
     @patch('vsi2wm.ir_builder.build_ir_from_vsi')
     @patch('vsi2wm.mapper.map_ir_to_wiremock')
-    def test_cloud_format_default(self, mock_mapper, mock_ir_builder, mock_parser):
+    def test_cloud_format_default(self, mock_mapper, mock_ir_builder, mock_parse_vsi):
         """Test that Cloud format is used by default."""
         # Setup mocks
-        mock_parser_instance = Mock()
-        mock_parser_instance.parse.return_value = Mock()
-        mock_parser.return_value = mock_parser_instance
+        mock_parse_vsi.return_value = {
+            "layout": "standard",
+            "metadata": {"source_version": "1.0", "build_number": "123"},
+            "protocol": "HTTP",
+            "is_http": True,
+            "transactions_count": 0,
+            "warnings": []
+        }
         
         mock_ir = Mock()
         mock_ir.transactions = []
@@ -441,15 +446,20 @@ class TestFormatSelectionIntegration:
             cloud_export = Path(tmp_dir) / "output" / "wiremock-cloud-export.json"
             assert cloud_export.exists()
 
-    @patch('vsi2wm.parser.VSIParser')
+    @patch('vsi2wm.parser.parse_vsi_file')
     @patch('vsi2wm.ir_builder.build_ir_from_vsi')
     @patch('vsi2wm.mapper.map_ir_to_wiremock')
-    def test_oss_format_explicit(self, mock_mapper, mock_ir_builder, mock_parser):
+    def test_oss_format_explicit(self, mock_mapper, mock_ir_builder, mock_parse_vsi):
         """Test that OSS format is used when explicitly specified."""
         # Setup mocks
-        mock_parser_instance = Mock()
-        mock_parser_instance.parse.return_value = Mock()
-        mock_parser.return_value = mock_parser_instance
+        mock_parse_vsi.return_value = {
+            "layout": "standard",
+            "metadata": {"source_version": "1.0", "build_number": "123"},
+            "protocol": "HTTP",
+            "is_http": True,
+            "transactions_count": 0,
+            "warnings": []
+        }
         
         mock_ir = Mock()
         mock_ir.transactions = []

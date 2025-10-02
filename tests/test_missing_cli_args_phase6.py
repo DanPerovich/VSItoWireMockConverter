@@ -32,37 +32,37 @@ class TestMissingCLIArguments:
         with pytest.raises(SystemExit):
             parse_args(args)
 
-    def test_update_mockapi_argument_missing(self):
-        """Test that --update-mockapi argument is missing (as noted in TODO)."""
-        # This test documents that --update-mockapi is missing
-        # According to the TODO, it should be added but currently isn't implemented
+    def test_update_mockapi_argument_implemented(self):
+        """Test that --update-mockapi argument is now implemented."""
+        # This test documents that --update-mockapi is now implemented
+        # According to the TODO, it should be added and now it is
         
         args = [
             "convert",
             "--in", "test.vsi",
             "--out", "output",
-            "--update-mockapi"  # This should work but currently doesn't
+            "--update-mockapi"  # This should work now
         ]
         
-        # This should raise an error because --update-mockapi doesn't exist
-        with pytest.raises(SystemExit):
-            parse_args(args)
+        # This should NOT raise an error because --update-mockapi now exists
+        parsed_args = parse_args(args)
+        assert parsed_args.update_mockapi is True
 
-    def test_mockapi_id_argument_missing(self):
-        """Test that --mockapi-id argument is missing (as noted in TODO)."""
-        # This test documents that --mockapi-id is missing
-        # According to the TODO, it should be added but currently isn't implemented
+    def test_mockapi_id_argument_implemented(self):
+        """Test that --mockapi-id argument is now implemented."""
+        # This test documents that --mockapi-id is now implemented
+        # According to the TODO, it should be added and now it is
         
         args = [
             "convert",
             "--in", "test.vsi",
             "--out", "output",
-            "--mockapi-id", "mock123"  # This should work but currently doesn't
+            "--mockapi-id", "mock123"  # This should work now
         ]
         
-        # This should raise an error because --mockapi-id doesn't exist
-        with pytest.raises(SystemExit):
-            parse_args(args)
+        # This should NOT raise an error because --mockapi-id now exists
+        parsed_args = parse_args(args)
+        assert parsed_args.mockapi_id == "mock123"
 
     def test_existing_arguments_still_work(self):
         """Test that existing arguments still work while missing ones are documented."""
@@ -134,6 +134,10 @@ class TestCLIArgumentValidation:
             args.input_file = vsi_file
             args.output_dir = Path(tmp_dir) / "output"
             args.max_file_size = 1024 * 1024
+            # Add missing attributes to avoid validation errors
+            args.update_mockapi = False
+            args.mockapi_id = None
+            args.no_create_mockapi = False
             
             # Should not raise exception
             validate_args(args)
@@ -215,10 +219,51 @@ class TestCLIWorkflowWithMissingArgs:
             
             # This should work with current implementation
             # When --project-name is added, it should also work
-            with patch('vsi2wm.core.VSIConverter') as mock_converter:
+            with patch('vsi2wm.core.VSIConverter') as mock_converter, \
+                 patch('vsi2wm.wiremock_cloud.WireMockCloudClient') as mock_client_class, \
+                 patch('vsi2wm.parser.parse_vsi_file') as mock_parse_vsi, \
+                 patch('vsi2wm.ir_builder.build_ir_from_vsi') as mock_ir_builder, \
+                 patch('vsi2wm.mapper.map_ir_to_wiremock') as mock_mapper:
+                
                 mock_converter_instance = Mock()
                 mock_converter_instance.convert.return_value = 0
+                # Mock the report attributes that are used in source_metadata
+                mock_converter_instance.report.source_version = "1.0"
+                mock_converter_instance.report.build_number = "123"
                 mock_converter.return_value = mock_converter_instance
+                
+                # Mock parsing functions
+                mock_parse_vsi.return_value = {
+                    "layout": "standard",
+                    "metadata": {"source_version": "1.0", "build_number": "123"},
+                    "protocol": "HTTP",
+                    "is_http": True,
+                    "transactions_count": 0,
+                    "warnings": []
+                }
+                
+                mock_ir = Mock()
+                mock_transactions = []
+                mock_ir.transactions = mock_transactions
+                mock_ir_builder.return_value = mock_ir
+                
+                mock_mapper.return_value = [
+                    {
+                        "priority": 0,
+                        "request": {"method": "GET", "urlPath": "/users"},
+                        "response": {"status": 200, "body": "Hello World"},
+                        "metadata": {"devtest_transaction_id": "GET#/users"}
+                    }
+                ]
+                
+                # Mock WireMock Cloud client to avoid real API calls
+                mock_client = Mock()
+                mock_client_class.return_value = mock_client
+                mock_client.list_mock_apis.return_value = []
+                mock_client.create_mock_api.return_value = {
+                    "mockApi": {"id": "mock123", "name": "test-mockapi"}
+                }
+                mock_client.session.post.return_value = Mock(status_code=200, content=b'')
                 
                 exit_code = main(args)
                 assert exit_code == 0
@@ -249,10 +294,54 @@ class TestCLIWorkflowWithMissingArgs:
             
             # This should work with current implementation
             # When --update-mockapi is added, it should provide better UX
-            with patch('vsi2wm.core.VSIConverter') as mock_converter:
+            with patch('vsi2wm.core.VSIConverter') as mock_converter, \
+                 patch('vsi2wm.wiremock_cloud.WireMockCloudClient') as mock_client_class, \
+                 patch('vsi2wm.parser.parse_vsi_file') as mock_parse_vsi, \
+                 patch('vsi2wm.ir_builder.build_ir_from_vsi') as mock_ir_builder, \
+                 patch('vsi2wm.mapper.map_ir_to_wiremock') as mock_mapper:
+                
                 mock_converter_instance = Mock()
                 mock_converter_instance.convert.return_value = 0
+                # Mock the report attributes that are used in source_metadata
+                mock_converter_instance.report.source_version = "1.0"
+                mock_converter_instance.report.build_number = "123"
                 mock_converter.return_value = mock_converter_instance
+                
+                # Mock parsing functions
+                mock_parse_vsi.return_value = {
+                    "layout": "standard",
+                    "metadata": {"source_version": "1.0", "build_number": "123"},
+                    "protocol": "HTTP",
+                    "is_http": True,
+                    "transactions_count": 0,
+                    "warnings": []
+                }
+                
+                mock_ir = Mock()
+                mock_transactions = []
+                mock_ir.transactions = mock_transactions
+                mock_ir_builder.return_value = mock_ir
+                
+                mock_mapper.return_value = [
+                    {
+                        "priority": 0,
+                        "request": {"method": "GET", "urlPath": "/users"},
+                        "response": {"status": 200, "body": "Hello World"},
+                        "metadata": {"devtest_transaction_id": "GET#/users"}
+                    }
+                ]
+                
+                # Mock WireMock Cloud client to avoid real API calls
+                mock_client = Mock()
+                mock_client_class.return_value = mock_client
+                # For --no-create-mockapi, return an existing MockAPI
+                mock_client.list_mock_apis.return_value = [
+                    {"id": "mock123", "name": "test"}
+                ]
+                mock_client.create_mock_api.return_value = {
+                    "mockApi": {"id": "mock123", "name": "test-mockapi"}
+                }
+                mock_client.session.post.return_value = Mock(status_code=200, content=b'')
                 
                 exit_code = main(args)
                 assert exit_code == 0
@@ -283,10 +372,51 @@ class TestCLIWorkflowWithMissingArgs:
             
             # This should work with current implementation
             # When --mockapi-id is added, it should provide more control
-            with patch('vsi2wm.core.VSIConverter') as mock_converter:
+            with patch('vsi2wm.core.VSIConverter') as mock_converter, \
+                 patch('vsi2wm.wiremock_cloud.WireMockCloudClient') as mock_client_class, \
+                 patch('vsi2wm.parser.parse_vsi_file') as mock_parse_vsi, \
+                 patch('vsi2wm.ir_builder.build_ir_from_vsi') as mock_ir_builder, \
+                 patch('vsi2wm.mapper.map_ir_to_wiremock') as mock_mapper:
+                
                 mock_converter_instance = Mock()
                 mock_converter_instance.convert.return_value = 0
+                # Mock the report attributes that are used in source_metadata
+                mock_converter_instance.report.source_version = "1.0"
+                mock_converter_instance.report.build_number = "123"
                 mock_converter.return_value = mock_converter_instance
+                
+                # Mock parsing functions
+                mock_parse_vsi.return_value = {
+                    "layout": "standard",
+                    "metadata": {"source_version": "1.0", "build_number": "123"},
+                    "protocol": "HTTP",
+                    "is_http": True,
+                    "transactions_count": 0,
+                    "warnings": []
+                }
+                
+                mock_ir = Mock()
+                mock_transactions = []
+                mock_ir.transactions = mock_transactions
+                mock_ir_builder.return_value = mock_ir
+                
+                mock_mapper.return_value = [
+                    {
+                        "priority": 0,
+                        "request": {"method": "GET", "urlPath": "/users"},
+                        "response": {"status": 200, "body": "Hello World"},
+                        "metadata": {"devtest_transaction_id": "GET#/users"}
+                    }
+                ]
+                
+                # Mock WireMock Cloud client to avoid real API calls
+                mock_client = Mock()
+                mock_client_class.return_value = mock_client
+                mock_client.list_mock_apis.return_value = []
+                mock_client.create_mock_api.return_value = {
+                    "mockApi": {"id": "mock123", "name": "test-mockapi"}
+                }
+                mock_client.session.post.return_value = Mock(status_code=200, content=b'')
                 
                 exit_code = main(args)
                 assert exit_code == 0
