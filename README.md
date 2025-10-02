@@ -52,6 +52,9 @@ poetry run vsi2wm convert \
 
 # Use legacy OSS format (hidden feature)
 poetry run vsi2wm convert --in service.vsi --oss-format
+
+# Strict mode - fail if unsupported CA LISA helpers are found
+poetry run vsi2wm convert --in service.vsi --strict-mode
 ```
 
 ### Example Output
@@ -115,6 +118,7 @@ output/
   - `both` (default): Match both header and body
 - `--max-file-size <bytes>`: Maximum file size before splitting (default: 1048576)
 - `--log-level <level>`: Logging level (debug, info, warn, error)
+- `--strict-mode`: Fail conversion if unsupported CA LISA helpers are found
 
 ### WireMock Cloud Arguments
 - `--auto-upload`: Automatically upload stubs to WireMock Cloud after conversion
@@ -519,6 +523,12 @@ Warning: Response body exceeds max file size (1048576 bytes), splitting to __fil
 Warning: Skipping non-HTTP protocol: MQ
 ```
 **Solution:** Only HTTP/HTTPS protocols are supported. MQ and other protocols are skipped.
+
+#### Unsupported CA LISA Helpers
+```bash
+Warning: Unsupported CA LISA helper in response body: {{=doRandomString(10)}}
+```
+**Solution:** The converter detects unsupported CA LISA helper functions and replaces them with `[UNSUPPORTED: helper]` format. Use `--strict-mode` to fail conversion when unsupported helpers are found.
 
 ### Debug Mode
 

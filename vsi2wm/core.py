@@ -65,6 +65,7 @@ class VSIConverter:
         soap_match_strategy: str = "both",
         max_file_size: int = 1024 * 1024,
         output_format: str = "cloud",
+        strict_mode: bool = False,
     ):
         self.input_file = input_file
         self.output_dir = output_dir
@@ -72,6 +73,7 @@ class VSIConverter:
         self.soap_match_strategy = soap_match_strategy
         self.max_file_size = max_file_size
         self.output_format = output_format
+        self.strict_mode = strict_mode
         self.report = ConversionReport(input_file)
 
         # Create output directories
@@ -122,7 +124,11 @@ class VSIConverter:
             # 2. Build Intermediate Representation
             from vsi2wm.ir_builder import build_ir_from_vsi
 
-            ir = build_ir_from_vsi(self.input_file)
+            ir, ir_warnings = build_ir_from_vsi(self.input_file)
+
+            # Add IR warnings to report
+            for warning in ir_warnings:
+                self.report.add_warning(warning)
 
             # Update report with IR results
             self.report.variants_count = sum(
@@ -132,6 +138,18 @@ class VSIConverter:
             # Add IR notes
             self.report.add_note(f"Built IR with {len(ir.transactions)} transactions")
             self.report.add_note(f"Total response variants: {self.report.variants_count}")
+
+            # Check for unsupported helpers in strict mode
+            if self.strict_mode:
+                unsupported_warnings = [w for w in self.report.warnings if "Unsupported CA LISA helper" in w]
+                if unsupported_warnings:
+                    logger.error("Strict mode enabled: Found unsupported CA LISA helpers")
+                    logger.error("Unsupported CA LISA helpers found:")
+                    for warning in unsupported_warnings:
+                        logger.error(f"  - {warning}")
+                    self.report.add_warning("Conversion failed due to unsupported CA LISA helpers in strict mode")
+                    self.report.save(self.output_dir)
+                    return 1
 
             # 3. Generate WireMock mappings
             from vsi2wm.mapper import map_ir_to_wiremock

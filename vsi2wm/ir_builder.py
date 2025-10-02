@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from xml.etree.ElementTree import Element, iterparse
 
 from vsi2wm.ir import (
@@ -19,7 +19,7 @@ from vsi2wm.ir import (
     parse_latency,
     parse_weight,
 )
-from vsi2wm.helper_converter import convert_body_helpers
+from vsi2wm.helper_converter import HelperConverter
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ class IRBuilder:
         self.vsi_file_path = vsi_file_path
         self.ir = IntermediateRepresentation()
         self.warnings: List[str] = []
+        self.helper_converter = HelperConverter()
         
     def build(self) -> IntermediateRepresentation:
         """Build the complete Intermediate Representation."""
@@ -139,6 +140,12 @@ class IRBuilder:
         headers_elem = request_elem.find('.//headers')
         if headers_elem:
             headers = extract_headers(headers_elem)
+            # Detect unsupported helpers in request headers and convert
+            self.helper_converter.clear_unsupported_helpers()  # Clear previous helpers
+            headers = self.helper_converter.convert_headers(headers)
+            # Collect warnings from helper converter
+            for helper in self.helper_converter.get_unsupported_helpers():
+                self.warnings.append(f"Unsupported CA LISA helper in request header: {helper}")
         
         # Extract query parameters
         query_elem = request_elem.find('.//query')
@@ -156,7 +163,12 @@ class IRBuilder:
                         body = RequestBody(type=body_type, content=body_content)
                         
                         # Convert CA LISA helpers to WireMock Handlebars helpers
-                        body = convert_body_helpers(body)
+                        self.helper_converter.clear_unsupported_helpers()  # Clear previous helpers
+                        body = self.helper_converter.convert_request_body(body)
+                        
+                        # Collect warnings from helper converter
+                        for helper in self.helper_converter.get_unsupported_helpers():
+                            self.warnings.append(f"Unsupported CA LISA helper in request body: {helper}")
                         
                         # Detect SOAP services and default to POST
                         if body_type == "xml" and "soapenv:Envelope" in body.content:
@@ -224,6 +236,12 @@ class IRBuilder:
         # Extract headers
         headers_elem = response_elem.find('.//headers')
         headers = extract_headers(headers_elem)
+        # Detect unsupported helpers in response headers and convert
+        self.helper_converter.clear_unsupported_helpers()  # Clear previous helpers
+        headers = self.helper_converter.convert_headers(headers)
+        # Collect warnings from helper converter
+        for helper in self.helper_converter.get_unsupported_helpers():
+            self.warnings.append(f"Unsupported CA LISA helper in response header: {helper}")
         
         # Extract body - iterate through children instead of using find
         body = None
@@ -236,7 +254,12 @@ class IRBuilder:
                         body = ResponseBody(type=body_type, content=body_content)
                         
                         # Convert CA LISA helpers to WireMock Handlebars helpers
-                        body = convert_body_helpers(body)
+                        self.helper_converter.clear_unsupported_helpers()  # Clear previous helpers
+                        body = self.helper_converter.convert_response_body(body)
+                        
+                        # Collect warnings from helper converter
+                        for helper in self.helper_converter.get_unsupported_helpers():
+                            self.warnings.append(f"Unsupported CA LISA helper in response body: {helper}")
                         
                         logger.debug(f"Found response body: type={body_type}, content length={len(body_content)}")
                 break
@@ -283,7 +306,12 @@ class IRBuilder:
         return None
 
 
-def build_ir_from_vsi(vsi_file_path: Path) -> IntermediateRepresentation:
-    """Convenience function to build IR from VSI file."""
+def build_ir_from_vsi(vsi_file_path: Path) -> Tuple[IntermediateRepresentation, List[str]]:
+    """Convenience function to build IR from VSI file.
+    
+    Returns:
+        Tuple of (IntermediateRepresentation, warnings)
+    """
     builder = IRBuilder(vsi_file_path)
-    return builder.build()
+    ir = builder.build()
+    return ir, builder.warnings

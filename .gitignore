@@ -149,5 +149,27 @@ Desktop.ini
 
 # Project specific
 test_output/
+test_output_*/
 output/
 *.vsi.bak
+
+# Test output directories
+ZelleFIS/
+test_output_cloud/
+test_output_cloud_test/
+test_output_config/
+test_output_enhanced/
+test_output_golden/
+test_output_large_files/
+test_output_milestone*/
+test_output_multiple/
+test_output_override/
+test_output_simple/
+test_output_soap/
+
+# Temporary test files
+test_config_*.yaml
+test_wiremock_cloud.yaml
+
+# Legacy files
+vsiConverter_v2.py

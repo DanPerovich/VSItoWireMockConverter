@@ -83,6 +83,11 @@ Examples:
         type=int,
         help="Maximum file size before splitting to __files (overrides config)",
     )
+    convert_parser.add_argument(
+        "--strict-mode",
+        action="store_true",
+        help="Fail conversion if unsupported CA LISA helpers are found",
+    )
     # Hidden OSS format flag (undocumented feature)
     convert_parser.add_argument(
         "--oss-format",
@@ -340,6 +345,7 @@ def main(args: Optional[list[str]] = None) -> int:
                 soap_match_strategy=config.soap_match_strategy,
                 max_file_size=config.max_file_size,
                 output_format=output_format,
+                strict_mode=getattr(parsed_args, 'strict_mode', False),
             )
 
             exit_code = converter.convert()
