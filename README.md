@@ -360,6 +360,23 @@ poetry run vsi2wm convert --in my-api.vsi
 poetry run vsi2wm convert --in service.vsi --out wiremock-stubs
 ```
 
+### Build Standalone Binaries
+
+Create one-file executables with PyInstaller. This uses the helper script shared with CI so local builds match release artifacts.
+
+```bash
+# Install dev dependencies (first time only)
+poetry install --with dev
+
+# Build binaries into dist/pyinstaller/
+poetry run python scripts/build_pyinstaller.py
+
+# Run the binary
+./dist/pyinstaller/vsi2wm --help
+```
+
+GitHub Actions builds the same binaries for Linux, macOS, and Windows. Trigger the workflow by pushing a tag like `v0.1.0` or run it manually from the Actions tab. Artifacts are uploaded as `vsi2wm-linux-x64`, `vsi2wm-darwin-x64`, and `vsi2wm-windows-x64.exe`.
+
 ### REST JSON Service
 
 **Input VSI:**
