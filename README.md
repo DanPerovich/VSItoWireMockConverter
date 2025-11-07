@@ -377,6 +377,8 @@ poetry run python scripts/build_pyinstaller.py
 
 GitHub Actions builds the same binaries for Linux, macOS, and Windows. Trigger the workflow by pushing a tag like `v0.1.0` or run it manually from the Actions tab. Artifacts are uploaded as `vsi2wm-linux-x64`, `vsi2wm-darwin-x64`, and `vsi2wm-windows-x64.exe`.
 
+Publishing a tag automatically creates a GitHub Release named after the tag and attaches the three binaries as release assets.
+
 ### REST JSON Service
 
 **Input VSI:**
