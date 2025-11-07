@@ -39,10 +39,10 @@ jobs:
           python -m pip install poetry
 
       - name: Install project dependencies
-        run: poetry install --with dev
+        run: python -m poetry install --with dev
 
       - name: Build executable with PyInstaller
-        run: poetry run python scripts/build_pyinstaller.py
+        run: python -m poetry run python scripts/build_pyinstaller.py
 
       - name: Rename platform artifact
         if: ${{ matrix.executable != '' }}
