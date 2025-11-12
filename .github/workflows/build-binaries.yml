@@ -26,6 +26,7 @@ jobs:
             quay.io/pypa/manylinux2014_x86_64:latest \
             /bin/bash -c "set -euo pipefail
               PYTHON_BIN=/opt/python/cp311-cp311/bin/python3
+              yum install -y libxml2-devel libxslt-devel
               \$PYTHON_BIN -m pip install --upgrade pip
               \$PYTHON_BIN -m pip install poetry
               \$PYTHON_BIN -m poetry install --with dev
