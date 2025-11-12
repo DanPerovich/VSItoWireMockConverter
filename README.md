@@ -379,6 +379,21 @@ GitHub Actions builds the same binaries for Linux, macOS, and Windows. Trigger t
 
 Publishing a tag automatically creates a GitHub Release named after the tag and attaches the three binaries as release assets.
 
+#### Running the macOS Binary
+
+macOS Gatekeeper will block unsigned binaries downloaded from the internet. To run the macOS binary, remove the quarantine flag:
+
+```bash
+# Remove quarantine flag and make executable
+xattr -d com.apple.quarantine vsi2wm-darwin-x64
+chmod +x vsi2wm-darwin-x64
+
+# Run the binary
+./vsi2wm-darwin-x64 --help
+```
+
+Alternatively, you can right-click the binary in Finder, select **Open**, and click **Open** in the security dialog that appears.
+
 ### REST JSON Service
 
 **Input VSI:**
