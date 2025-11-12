@@ -13,25 +13,24 @@ jobs:
   build-linux:
     name: Build linux binary
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/pypa/manylinux2014_x86_64:latest
-    env:
-      PYTHON_BIN: /opt/python/cp311-cp311/bin/python3
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install Poetry
+      - name: Build executable in manylinux2014 container
         run: |
-          $PYTHON_BIN -m pip install --upgrade pip
-          $PYTHON_BIN -m pip install poetry
-
-      - name: Install project dependencies
-        run: $PYTHON_BIN -m poetry install --with dev
-
-      - name: Build executable with PyInstaller
-        run: $PYTHON_BIN -m poetry run python scripts/build_pyinstaller.py
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            quay.io/pypa/manylinux2014_x86_64:latest \
+            /bin/bash -c "set -euo pipefail
+              PYTHON_BIN=/opt/python/cp311-cp311/bin/python3
+              \$PYTHON_BIN -m pip install --upgrade pip
+              \$PYTHON_BIN -m pip install poetry
+              \$PYTHON_BIN -m poetry install --with dev
+              \$PYTHON_BIN -m poetry run python scripts/build_pyinstaller.py
+            "
 
       - name: Rename platform artifact
         run: mv dist/pyinstaller/vsi2wm dist/pyinstaller/vsi2wm-linux-x64
