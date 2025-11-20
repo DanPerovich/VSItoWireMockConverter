@@ -375,9 +375,13 @@ poetry run python scripts/build_pyinstaller.py
 ./dist/pyinstaller/vsi2wm --help
 ```
 
-GitHub Actions builds the same binaries for Linux, macOS, and Windows. Trigger the workflow by pushing a tag like `v0.1.0` or run it manually from the Actions tab. Artifacts are uploaded as `vsi2wm-linux-x64`, `vsi2wm-darwin-x64`, and `vsi2wm-windows-x64.exe`.
+GitHub Actions builds binaries for Linux (Ubuntu 22.04 and Amazon Linux 2023), macOS, and Windows. Trigger the workflow by pushing a tag like `v0.1.0` or run it manually from the Actions tab. Artifacts are uploaded as:
+- `vsi2wm-linux-x64` (Ubuntu 22.04+, Debian 12+, RHEL 9+)
+- `vsi2wm-amazonlinux2023-x64` (Amazon Linux 2023)
+- `vsi2wm-darwin-x64` (macOS)
+- `vsi2wm-windows-x64.exe` (Windows)
 
-Publishing a tag automatically creates a GitHub Release named after the tag and attaches the three binaries as release assets.
+Publishing a tag automatically creates a GitHub Release named after the tag and attaches all binaries as release assets.
 
 #### Running the macOS Binary
 
@@ -396,27 +400,32 @@ Alternatively, you can right-click the binary in Finder, select **Open**, and cl
 
 #### Running the Linux Binary
 
-The Linux binary is built on Ubuntu 22.04 and requires glibc 2.35 or later. This is compatible with:
-- Ubuntu 22.04+
-- Debian 12+
-- Fedora 36+
-- RHEL/Rocky/AlmaLinux 9+
+**Two Linux binaries are provided:**
 
-**For Amazon Linux 2023** (glibc 2.34), the binary won't work. Install Python 3.11+ and use Poetry instead:
+1. **`vsi2wm-linux-x64`** (Ubuntu 22.04 build, glibc 2.35+)
+   - Ubuntu 22.04+, Debian 12+, Fedora 36+, RHEL/Rocky/AlmaLinux 9+
+
+2. **`vsi2wm-amazonlinux2023-x64`** (Amazon Linux 2023 build, glibc 2.34+)
+   - Amazon Linux 2023
+   - Ubuntu 20.04+, Debian 11+, RHEL 8+
+   - Use this if the Ubuntu binary doesn't work
 
 ```bash
-# On Amazon Linux 2023
-sudo yum install -y python3.11 python3.11-pip git
-python3.11 -m pip install --user poetry
+# Download and run
+chmod +x vsi2wm-amazonlinux2023-x64
+./vsi2wm-amazonlinux2023-x64 convert --in service.vsi
+```
 
-# Clone and run
+For older systems (Amazon Linux 2, CentOS 7, Ubuntu 18.04), install Python 3.11+ and use Poetry:
+
+```bash
+sudo yum install -y python3.11 python3.11-pip git  # or apt-get
+python3.11 -m pip install --user poetry
 git clone <your-repo-url>
 cd VSItoWireMockConverter
 python3.11 -m poetry install
 python3.11 -m poetry run vsi2wm convert --in service.vsi
 ```
-
-For other older systems (Amazon Linux 2, Ubuntu 20.04, RHEL 8), install Python 3.11+ and use the Poetry method above.
 
 ### REST JSON Service
 
