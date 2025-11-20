@@ -396,12 +396,12 @@ Alternatively, you can right-click the binary in Finder, select **Open**, and cl
 
 #### Running the Linux Binary
 
-The Linux binary is built on Ubuntu 24.04 and requires glibc 2.38 or later. This is compatible with:
-- Ubuntu 24.04+
-- Debian 13+
-- Fedora 39+
+The Linux binary is built on Ubuntu 22.04 and requires glibc 2.35 or later. This is compatible with:
+- Ubuntu 22.04+
+- Debian 12+
+- Fedora 36+
 - Amazon Linux 2023
-- RHEL/Rocky/AlmaLinux 9.4+
+- RHEL/Rocky/AlmaLinux 9+
 
 For older systems (Amazon Linux 2, Ubuntu 20.04, RHEL 8), use Python with Poetry instead:
 
