@@ -394,6 +394,23 @@ chmod +x vsi2wm-darwin-x64
 
 Alternatively, you can right-click the binary in Finder, select **Open**, and click **Open** in the security dialog that appears.
 
+#### Running the Linux Binary
+
+The Linux binary is built on Ubuntu 24.04 and requires glibc 2.38 or later. This is compatible with:
+- Ubuntu 24.04+
+- Debian 13+
+- Fedora 39+
+- Amazon Linux 2023
+- RHEL/Rocky/AlmaLinux 9.4+
+
+For older systems (Amazon Linux 2, Ubuntu 20.04, RHEL 8), use Python with Poetry instead:
+
+```bash
+# Install Python 3.11+ and run via Poetry
+poetry install
+poetry run vsi2wm convert --in service.vsi
+```
+
 ### REST JSON Service
 
 **Input VSI:**
