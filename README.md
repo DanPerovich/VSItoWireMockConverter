@@ -396,14 +396,13 @@ Alternatively, you can right-click the binary in Finder, select **Open**, and cl
 
 #### Running the Linux Binary
 
-The Linux binary is built in a manylinux_2_28 container and requires glibc 2.28 or later. This is compatible with:
+The Linux binary is built on Ubuntu 20.04 and requires glibc 2.31 or later. This is compatible with:
 - Ubuntu 20.04+
 - Debian 11+
 - Fedora 33+
-- Amazon Linux 2023
-- RHEL/Rocky/AlmaLinux 8+
+- RHEL/Rocky/AlmaLinux 8.5+
 
-For older systems (Amazon Linux 2, CentOS 7, Ubuntu 18.04), use Python with Poetry instead:
+For Amazon Linux 2023 or older systems, install Python 3.11+ and use Poetry:
 
 ```bash
 # Install Python 3.11+ and run via Poetry
