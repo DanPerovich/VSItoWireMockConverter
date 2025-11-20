@@ -396,19 +396,27 @@ Alternatively, you can right-click the binary in Finder, select **Open**, and cl
 
 #### Running the Linux Binary
 
-The Linux binary is built on Ubuntu 20.04 and requires glibc 2.31 or later. This is compatible with:
-- Ubuntu 20.04+
-- Debian 11+
-- Fedora 33+
-- RHEL/Rocky/AlmaLinux 8.5+
+The Linux binary is built on Ubuntu 22.04 and requires glibc 2.35 or later. This is compatible with:
+- Ubuntu 22.04+
+- Debian 12+
+- Fedora 36+
+- RHEL/Rocky/AlmaLinux 9+
 
-For Amazon Linux 2023 or older systems, install Python 3.11+ and use Poetry:
+**For Amazon Linux 2023** (glibc 2.34), the binary won't work. Install Python 3.11+ and use Poetry instead:
 
 ```bash
-# Install Python 3.11+ and run via Poetry
-poetry install
-poetry run vsi2wm convert --in service.vsi
+# On Amazon Linux 2023
+sudo yum install -y python3.11 python3.11-pip git
+python3.11 -m pip install --user poetry
+
+# Clone and run
+git clone <your-repo-url>
+cd VSItoWireMockConverter
+python3.11 -m poetry install
+python3.11 -m poetry run vsi2wm convert --in service.vsi
 ```
+
+For other older systems (Amazon Linux 2, Ubuntu 20.04, RHEL 8), install Python 3.11+ and use the Poetry method above.
 
 ### REST JSON Service
 
