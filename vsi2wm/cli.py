@@ -35,7 +35,6 @@ Examples:
   vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx  # Auto-upload to WireMock Cloud
   vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --update-mockapi --mockapi-id abc123  # Update existing MockAPI
   vsi2wm convert --in service.vsi --auto-upload --api-token wm_xxx --no-create-mockapi  # Use existing MockAPI by name
-  vsi2wm convert --in service.vsi --oss-format      # Use legacy OSS format (hidden feature)
         """,
     )
 
